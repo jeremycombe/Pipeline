@@ -4,7 +4,6 @@ import operator
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import LabelEncoder
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, GradientBoostingRegressor, \
     RandomForestRegressor
 from sklearn.svm import SVC, SVR
