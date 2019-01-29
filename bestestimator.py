@@ -45,6 +45,7 @@ class BestEstimator(object):
                    target_ID=True,  # If Target feature have an ID
                    cv=3,  # Numbers of folds for the first estimators check
                    grid=False,  # if True, use a GridSearchCV with best estimator found
+                   hard_grid=False, # if True, test huge combinaison of hyperparametres
                    cv_grid=3,  # Number of folds for the GridSearchCV
                    n=10000,  # Number of observations used for the first check
                    n_grid=10000,  # Number of observations used for the GridSearchCV
@@ -178,71 +179,149 @@ class BestEstimator(object):
 
                 # print(Best_clf)
 
-                if Best_clf == 'Gradient Boosting':
+                if hard_grid == False:
 
-                    if type_esti == 'regressor':
+                    if Best_clf == 'Gradient Boosting':
 
-                        params = {'n_estimators': [100, 300, 600],
+                        if type_esti == 'regressor':
+
+                            params = {'n_estimators': [100, 300, 600],
+                                      'max_depth': [5, 10, None],
+                                      'learning_rate': [.001, .01, .1],
+                                      'loss': ['ls', 'lad']}
+                        else:
+
+                            params = {'n_estimators': [100, 300, 600],
+                                      'max_depth': [5, 10, None],
+                                      'learning_rate': [.001, .01, .1],
+                                      'loss': ['deviance', 'exponential']}
+
+
+                    elif Best_clf == 'Random Forest':
+                        #  print('Best_clf = dt ou rf')
+
+                        if type_esti == 'regressor':
+
+                            params = {'n_estimators': [10, 100, 300],
+                                      'max_depth': [5, 10, None],
+                                      'criterion': ['mse', 'mae']}
+
+                        else:
+
+                            params = {'n_estimators': [10, 100, 300],
+                                      'max_depth': [5, 10, None],
+                                      'criterion': ['gini', 'entropy']}
+
+                    elif Best_clf == 'Decision Tree':
+
+                        if params == 'regressor':
+
+                            params = {'max_depth': [5, 10, 50, None],
+                                      'criterion': ['mse', 'friedman_mse', 'mae']}
+
+                        else:
+
+                            params = {'max_depth': [5, 10, 50, None],
+                                      'criterion': ['gini', 'entropy']}
+
+
+                    elif Best_clf == 'XGBoost':
+                        # print('Best_clf = xgb')
+
+                        params = {'eta': [.01, .1, .3],
                                   'max_depth': [5, 10, None],
-                                  'learning_rate': [.001, .01, .1],
-                                  'loss': ['ls', 'lad']}
-                    else:
+                                  'gamma': [0, .1, .01]}
 
-                        params = {'n_estimators': [100, 300, 600],
-                                  'max_depth': [5, 10, None],
-                                  'learning_rate': [.001, .01, .1],
-                                  'loss': ['deviance', 'exponential']}
+                    elif Best_clf == 'Bagging':
+                        # print('best_clf = bag)')
 
+                        params = {'n_estimators': [100, 300, 600]}
 
-                elif Best_clf == 'Random Forest':
-                    #  print('Best_clf = dt ou rf')
+                    elif Best_clf == 'KNN':
 
-                    if type_esti == 'regressor':
+                        params = {'n_neighbors': [2, 5, 10, 30, 40],
+                                  'p': [1, 2]}
 
-                        params = {'n_estimators': [10, 100, 300],
-                                  'max_depth': [5, 10, None],
-                                  'criterion': ['mse', 'mae']}
+                    elif Best_clf == 'SVM':
 
-                    else:
-
-                        params = {'n_estimators': [10, 100, 300],
-                                  'max_depth': [5, 10, None],
-                                  'criterion': ['gini', 'entropy']}
-
-                elif Best_clf == 'Decision Tree':
-
-                    if params == 'regressor':
-
-                        params = {'max_depth': [5, 10, 50, None],
-                                  'criterion': ['mse', 'friedman_mse', 'mae']}
-
-                    else:
-
-                        params = {'max_depth': [5, 10, 50, None],
-                                  'criterion': ['gini', 'entropy']}
+                        params = {'C': {1, .5, .1, 5},
+                                  'tol': [.01, .001, .1, .0001]}
 
 
-                elif Best_clf == 'XGBoost':
-                    # print('Best_clf = xgb')
 
-                    params = {'eta': [.01, .1, .3],
-                              'max_depth': [5, 10, None],
-                              'gamma': [0, .1, .01]}
+                else :
 
-                elif Best_clf == 'Bagging':
-                    # print('best_clf = bag)')
+                    if Best_clf == 'Gradient Boosting':
 
-                    params = {'n_estimators': [100, 300, 600]}
+                        if type_esti == 'regressor':
 
-                elif Best_clf == 'KNN':
+                            params = {'n_estimators': [100, 300, 600,1000, 1200],
+                                      'max_depth': [5, 10, 15, 25, None],
+                                      'learning_rate': [.001, .01, .1],
+                                      'loss': ['ls', 'lad','huber','quantile'],
+                                      'criterion': ['mse','friedman_mse']}
+                        else:
 
-                    params = {'n_neighbors': [2, 5, 10, 30, 40],
-                              'p': [1, 2]}
+                            params = {'n_estimators': [100, 300, 600, 1000, 1200],
+                                      'max_depth': [5, 10, 15, 25, None],
+                                      'learning_rate': [.001, .01, .1],
+                                      'loss': ['deviance', 'exponential'],
+                                      'criterion': ['mse', 'friedman_mse']}
 
-                elif Best_clf == 'SVM':
 
-                    params = {'C': {1, .5, .1, 5},
-                              'tol': [.01, .001, .1, .0001]}
+                    elif Best_clf == 'Random Forest':
+                        #  print('Best_clf = dt ou rf')
+
+                        if type_esti == 'regressor':
+
+                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
+                                      'max_depth': [5, 10, 15, 20, 25, None],
+                                      'criterion': ['mse', 'mae']}
+
+                        else:
+
+                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
+                                      'max_depth': [5, 10, 15, 20, 25, None],
+                                      'criterion': ['gini', 'entropy']}
+
+                    elif Best_clf == 'Decision Tree':
+
+                        if params == 'regressor':
+
+                            params = {'max_depth': [5, 10, 50, 100, None],
+                                      'criterion': ['mse', 'friedman_mse', 'mae'],
+                                      'splitter': ['best','random']}
+
+                        else:
+
+                            params = {'max_depth': [5, 10, 50, 100, None],
+                                      'criterion': ['gini', 'entropy'],
+                                      'splitter': ['best', 'random']}
+
+
+                    elif Best_clf == 'XGBoost':
+                        # print('Best_clf = xgb')
+
+                        params = {'eta': [0.001,.01, .1, .3,1],
+                                  'max_depth': [5, 10, 15, 20, 25, None],
+                                  'gamma': [0, .1, .01, .001]}
+
+                    elif Best_clf == 'Bagging':
+                        # print('best_clf = bag)')
+
+                        params = {'n_estimators': [100, 300, 600, 1000, 1200, 1500]}
+
+                    elif Best_clf == 'KNN':
+
+                        params = {'n_neighbors': [2, 5, 10, 30, 40, 70, 100],
+                                  'p': [1, 2, 3]}
+
+                    elif Best_clf == 'SVM':
+
+                        params = {'C': {1, .5, .1, 5, .01, .001},
+                                  'tol': [.01, .001, .1, .0001, 1],
+                                  'kernel' : ['rbf','linear', 'poly', 'sigmoid', 'precomputed']}
+
 
             print('\n Searching for best hyperparametres of {} on {} data among : \n'.format(Best_clf, n_grid))
             print('{} \n'.format(params))
