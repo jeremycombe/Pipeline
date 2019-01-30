@@ -45,7 +45,7 @@ class BestEstimator(object):
                    target_ID=True,  # If Target feature have an ID
                    cv=3,  # Numbers of folds for the first estimators check
                    grid=False,  # if True, use a GridSearchCV with best estimator found
-                   hard_grid=False, # if True, test huge combinaison of hyperparametres
+                   hard_grid=False,  # if True, test huge combinaison of hyperparametres
                    cv_grid=3,  # Number of folds for the GridSearchCV
                    n=10000,  # Number of observations used for the first check
                    n_grid=10000,  # Number of observations used for the GridSearchCV
@@ -181,6 +181,20 @@ class BestEstimator(object):
 
                 if hard_grid == False:
 
+                    if Best_clf == 'Extra Tree':
+
+                        if type_esti == 'regressor':
+
+                            params = {'n_estimators': [100, 300, 600],
+                                      'criterion': ['mse', 'mae'],
+                                      'max_depth': [None, 5, 10]}
+
+                        else:
+
+                            params = {'n_estimators': [100, 300, 600],
+                                      'criterion': ['gini', 'entropy'],
+                                      'max_depth': [None, 5, 10]}
+
                     if Best_clf == 'Gradient Boosting':
 
                         if type_esti == 'regressor':
@@ -214,7 +228,7 @@ class BestEstimator(object):
 
                     elif Best_clf == 'Decision Tree':
 
-                        if params == 'regressor':
+                        if type_esti == 'regressor':
 
                             params = {'max_depth': [5, 10, 50, None],
                                       'criterion': ['mse', 'friedman_mse', 'mae']}
@@ -249,17 +263,31 @@ class BestEstimator(object):
 
 
 
-                else :
+                else:
+
+                    if Best_clf == 'Extra Tree':
+
+                        if type_esti == 'regressor':
+
+                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
+                                      'criterion': ['mae', 'mse'],
+                                      'max_depth': [None, 5, 10, 15, 20, 25]}
+
+                        else:
+
+                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
+                                      'criterion': ['gini', 'entropy'],
+                                      'max_depth': [None, 5, 10, 15, 20, 25]}
 
                     if Best_clf == 'Gradient Boosting':
 
                         if type_esti == 'regressor':
 
-                            params = {'n_estimators': [100, 300, 600,1000, 1200],
+                            params = {'n_estimators': [100, 300, 600, 1000, 1200],
                                       'max_depth': [5, 10, 15, 25, None],
                                       'learning_rate': [.001, .01, .1],
-                                      'loss': ['ls', 'lad','huber','quantile'],
-                                      'criterion': ['mse','friedman_mse']}
+                                      'loss': ['ls', 'lad', 'huber', 'quantile'],
+                                      'criterion': ['mse', 'friedman_mse']}
                         else:
 
                             params = {'n_estimators': [100, 300, 600, 1000, 1200],
@@ -290,7 +318,7 @@ class BestEstimator(object):
 
                             params = {'max_depth': [5, 10, 50, 100, None],
                                       'criterion': ['mse', 'friedman_mse', 'mae'],
-                                      'splitter': ['best','random']}
+                                      'splitter': ['best', 'random']}
 
                         else:
 
@@ -302,7 +330,7 @@ class BestEstimator(object):
                     elif Best_clf == 'XGBoost':
                         # print('Best_clf = xgb')
 
-                        params = {'eta': [0.001,.01, .1, .3,1],
+                        params = {'eta': [0.001, .01, .1, .3, 1],
                                   'max_depth': [5, 10, 15, 20, 25, None],
                                   'gamma': [0, .1, .01, .001]}
 
@@ -320,8 +348,7 @@ class BestEstimator(object):
 
                         params = {'C': {1, .5, .1, 5, .01, .001},
                                   'tol': [.01, .001, .1, .0001, 1],
-                                  'kernel' : ['rbf','linear', 'poly', 'sigmoid', 'precomputed']}
-
+                                  'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
             print('\n Searching for best hyperparametres of {} on {} data among : \n'.format(Best_clf, n_grid))
             print('{} \n'.format(params))
