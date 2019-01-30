@@ -351,12 +351,11 @@ class BestEstimator(object):
                                   'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
             if hard_grid:
-                print(
-                    '\n Searching for best hyperparametres of {} using hard_grid on {} data among : \n'.format(Best_clf,
-                                                                                                               n_grid))
+                print('\n Searching for the best hyperparametres of {} using hard_grid on {} data among : \n'.format(
+                    Best_clf, n_grid))
 
             else:
-                print('\n Searching for best hyperparametres of {} on {} data among : \n'.format(Best_clf, n_grid))
+                print('\n Searching for the best hyperparametres of {} on {} data among : \n'.format(Best_clf, n_grid))
             print('{} \n'.format(params))
             # print('Starting GridSearchCV using {} Classifier with {} folds \n'.format(Best_clf, cv_grid))
 
@@ -372,9 +371,10 @@ class BestEstimator(object):
             # print(' Best score :', gr.best_score_,   '\n Using these parametres :', gr.best_params_)
 
             #####
-            print('\n Finally, best estimator is : {} {}'.format(Best_clf, type_esti), '\n Using these parametres :',
-                  gr.best_params_,
-                  '\n With this score : {}'.format(gr.best_score_))
+            print(
+            '\n Finally, best estimator is : {} {}'.format(Best_clf, type_esti), '\n Using these hyperparametres :',
+            gr.best_params_,
+            '\n With this {} score : {}'.format(scoring, gr.best_score_))
             #####
             return (gr)
         else:
