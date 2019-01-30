@@ -243,7 +243,7 @@ class BestEstimator(object):
                         # print('Best_clf = xgb')
 
                         params = {'eta': [.01, .1, .3],
-                                  'max_depth': [5, 10, None],
+                                  'max_depth': [5, 10, 15],
                                   'gamma': [0, .1, .01]}
 
                     elif Best_clf == 'Bagging':
@@ -375,7 +375,7 @@ class BestEstimator(object):
 
             #####
 
-            print('\n Finally, best estimator is : {} {}'.format(Best_clf, type_esti))
+            print('\n Finally, the best estimator is : {} {}'.format(Best_clf, type_esti))
             print('\n Using these hyperparametres : {}'.format(gr.best_params_))
 
             print('\n With this {} score : {}'.format(score, gr.best_score_))
