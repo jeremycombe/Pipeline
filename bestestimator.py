@@ -44,7 +44,7 @@ class BestEstimator(object):
                    ID='ID',  # ID feature of the DataFrame used
                    target_ID=True,  # If Target feature have an ID
                    cv=3,  # Numbers of folds for the first estimators check
-                   grid=False,  # if True, use a GridSearchCV with best estimator found
+                   grid=True,  # if True, use a GridSearchCV with best estimator found
                    hard_grid=False,  # if True, test huge combinaison of hyperparametres
                    cv_grid=3,  # Number of folds for the GridSearchCV
                    n=10000,  # Number of observations used for the first check
@@ -361,6 +361,9 @@ class BestEstimator(object):
 
             if scoring == 'AUC':
                 scoring = self.AUC
+                score = 'AUC'
+            else:
+                score = scoring
 
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
             gr = GridSearchCV(clf, param_grid=params, cv=cv_grid, scoring=scoring, n_jobs=-1,
@@ -371,12 +374,13 @@ class BestEstimator(object):
             # print(' Best score :', gr.best_score_,   '\n Using these parametres :', gr.best_params_)
 
             #####
-            print(
-            '\n Finally, best estimator is : {} {}'.format(Best_clf, type_esti), '\n Using these hyperparametres :',
-            gr.best_params_,
-            '\n With this {} score : {}'.format(scoring, gr.best_score_))
-            #####
-            return (gr)
+
+            print('\n Finally, best estimator is : {} {}'.format(Best_clf, type_esti))
+            print('\n Using these hyperparametres : {}'.format(gr.best_params_))
+
+            print('\n With this {} score : {}'.format(score, gr.best_score_))
+
+            # return (gr) !!!!!!!
         else:
             print('\n Best {} : {}'.format(type_esti, Best_clf))
 
