@@ -350,7 +350,13 @@ class BestEstimator(object):
                                   'tol': [.01, .001, .1, .0001, 1],
                                   'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
-            print('\n Searching for best hyperparametres of {} on {} data among : \n'.format(Best_clf, n_grid))
+            if hard_grid:
+                print(
+                    '\n Searching for best hyperparametres of {} using hard_grid on {} data among : \n'.format(Best_clf,
+                                                                                                               n_grid))
+
+            else:
+                print('\n Searching for best hyperparametres of {} on {} data among : \n'.format(Best_clf, n_grid))
             print('{} \n'.format(params))
             # print('Starting GridSearchCV using {} Classifier with {} folds \n'.format(Best_clf, cv_grid))
 
