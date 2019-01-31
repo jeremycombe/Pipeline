@@ -142,11 +142,12 @@ class BestEstimator(object):
 
             for item in clfs:
                 
-                if scoring == 'AUC':
+                if scoring == 'AUC' and np.unique(Target).shape[0] > 2:
                     scoring = self.AUC
                     score = 'AUC'
                 else :
-                    score = scoring
+                    score = 'AUC'
+                    scoring = 'roc_auc'
                 
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(X_tr[0:n]), np.ravel(Y_tr[0:n]),
                                         cv=self.cv, scoring=scoring)
@@ -388,7 +389,7 @@ class BestEstimator(object):
         
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
 
-            if loss == 'AUC':
+            if loss == 'AUC' and np.unique(Target).shape[0] > 2:
                 gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
                                 verbose=1, refit=True, iid=True)
             else :
@@ -404,7 +405,7 @@ class BestEstimator(object):
             print('\n Finally, the best estimator is : {} {}'.format(Best_clf, self.type_esti))
             print('\n Using these hyperparametres : {}'.format(gr.best_params_))
 
-            print('\n With this {} score : {}'.format(score, gr.best_score_))
+            print('\n With this {} score : {}'.format(loss, gr.best_score_))
 
             # return (gr) !!!!!!!
         else:
