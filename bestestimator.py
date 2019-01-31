@@ -124,8 +124,11 @@ class BestEstimator(object):
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
 
             for item in clfs:
+
+                if scoring == 'AUC':
+                    scoring = self.AUC
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(X_tr[0:n]), np.ravel(Y_tr[0:n]),
-                                        cv=cv, scoring=self.AUC)
+                                        cv=cv, scoring=scoring)
                 Score_mean = Score.mean()
                 STD2 = Score.std() * 2
 
