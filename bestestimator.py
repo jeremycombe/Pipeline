@@ -331,7 +331,7 @@ class BestEstimator(object):
                         # print('Best_clf = xgb')
 
                         params = {'eta': [0.001, .01, .1, .3, 1],
-                                  'max_depth': [5, 10, 15, 20, 25, None],
+                                  'max_depth': [5, 10, 15, 20, 25],
                                   'gamma': [0, .1, .01, .001]}
 
                     elif Best_clf == 'Bagging':
