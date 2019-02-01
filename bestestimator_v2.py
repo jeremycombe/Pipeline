@@ -51,6 +51,8 @@ class BestEstimator(object):
         #self.scoring = scoring
         
         self.AUC = make_scorer(multiclass_roc_auc_score)
+        
+        self.Decision_Function = None
 
             #self.scoring = make_scorer(multiclass_roc_auc_score)
         
@@ -140,14 +142,15 @@ class BestEstimator(object):
             # clfs['LR'] = {'clf': LogisticClassifier(), 'name': 'LR'}
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
 
+            
+            if scoring == 'AUC' and np.unique(Target).shape[0] > 2:
+                scoring = self.AUC
+                score = 'AUC'
+            else :
+                score = 'AUC'
+                scoring = 'roc_auc'
+            
             for item in clfs:
-                
-                if scoring == 'AUC' and np.unique(Target).shape[0] > 2:
-                    scoring = self.AUC
-                    score = 'AUC'
-                else :
-                    score = 'AUC'
-                    scoring = 'roc_auc'
                 
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(X_tr[0:n]), np.ravel(Y_tr[0:n]),
                                         cv=self.cv, scoring=scoring)
@@ -390,6 +393,8 @@ class BestEstimator(object):
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
 
             if loss == 'AUC' and np.unique(Target).shape[0] > 2:
+                
+                
                 gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
                                 verbose=1, refit=True, iid=True)
             else :
@@ -397,20 +402,46 @@ class BestEstimator(object):
                                     verbose=1, refit=True, iid=True, n_jobs = -1)
 
             gr.fit(X_tr[0:n_grid], np.ravel(Y_tr[0:n_grid]))
+            
+
 
             # print(' Best score :', gr.best_score_,   '\n Using these parametres :', gr.best_params_)
 
             #####
 
             print('\n Finally, the best estimator is : {} {}'.format(Best_clf, self.type_esti))
+
             print('\n Using these hyperparametres : {}'.format(gr.best_params_))
 
             print('\n With this {} score : {}'.format(loss, gr.best_score_))
-
-            # return (gr) !!!!!!!
+            
+            self.Decision_Function = gr.get_params()['estimator']
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
+            
+            
+            
+    def ReFit(self, Train, Target, ID = 'ID', target_ID = 'ID', value = 0):
+        
+        train = Train.copy()
+        target = Target.copy()
+        
+        if ID != None:
+            train.drop([ID], axis = 1, inplace = True)
+        
+        if target_ID != None:
+            target.drop([ID], axis = 1, inplace = True)
+            
+        
+        train = self.Transform(train, value = value, ID = ID)
+        target = self.Transform(target, value = value, ID = ID)
+        
+        estim = self.Decision_Function.fit(train, target)
+        
+        return(estim)
 
+    
+    
     def grid(self, clf, params, cv=3, n=100000):
 
         X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
@@ -453,7 +484,7 @@ class BestEstimator(object):
                 encoder.fit(list(Test[i]))
                 Test[i] = encoder.transform(list(Test[i]))
         return(Test)
-	
+
 
     def pred(self, Test, gr, prob=False, same=True, ID='ID', value=0):  #
 
