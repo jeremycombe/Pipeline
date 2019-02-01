@@ -415,7 +415,7 @@ class BestEstimator(object):
 
             print('\n With this {} score : {}'.format(loss, gr.best_score_))
             
-            self.Decision_Function = gr.get_params()['estimator']
+            self.Decision_Function = gr.best_estimator_
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
             
@@ -426,35 +426,12 @@ class BestEstimator(object):
         train = Train.copy()
         target = Target.copy()
         
-        if ID != None:
-            train.drop([ID], axis = 1, inplace = True)
-        
-        if target_ID != None:
-            target.drop([ID], axis = 1, inplace = True)
-            
-        
         train = self.Transform(train, value = value, ID = ID)
         target = self.Transform(target, value = value, ID = ID)
         
         estim = self.Decision_Function.fit(train, target)
         
         return(estim)
-
-    
-    
-    def grid(self, clf, params, cv=3, n=100000):
-
-        X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
-
-        gr = GridSearchCV(clf, param_grid=params, cv=cv, scoring=self.AUC, n_jobs=-1,
-                          verbose=1, refit=True, iid=True);
-
-        gr.fit(X_tr[0:n], np.ravel(Y_tr[0:n]))
-
-        # print(' Best score :', gr.best_score_,   '\n Using this parametres :', gr.best_params_, '\n With :', clf)
-        print(' Best score on Train:', gr.best_score_, '\n Using this parametres :', gr.best_params_,
-              '\n With : \n {} '.format(clf))
-        return gr
 
     
     
@@ -484,6 +461,11 @@ class BestEstimator(object):
                 encoder.fit(list(Test[i]))
                 Test[i] = encoder.transform(list(Test[i]))
         return(Test)
+    
+    
+    
+    def pred(self, Test, ID = 'ID', value = 0, prob = False):
+        pass
 
 
     def pred(self, Test, gr, prob=False, same=True, ID='ID', value=0):  #
@@ -520,10 +502,21 @@ class BestEstimator(object):
 
         else:
             return (gr.predict_proba(Test))
+        
 
-    # else :
-    #    return(gr.predict_proba(self.feature_eng(Data, value , ID)))
+    def grid(self, clf, params, cv=3, n=100000):
 
+        X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
+
+        gr = GridSearchCV(clf, param_grid=params, cv=cv, scoring=self.AUC, n_jobs=-1,
+                          verbose=1, refit=True, iid=True);
+
+        gr.fit(X_tr[0:n], np.ravel(Y_tr[0:n]))
+
+        # print(' Best score :', gr.best_score_,   '\n Using this parametres :', gr.best_params_, '\n With :', clf)
+        print(' Best score on Train:', gr.best_score_, '\n Using this parametres :', gr.best_params_,
+              '\n With : \n {} '.format(clf))
+        return gr
 
 
 
