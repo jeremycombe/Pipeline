@@ -51,6 +51,8 @@ class BestEstimator(object):
         self.estim = None
         self.Target = None
         self.Data = None
+        self.le = None
+        self.cat = None
         
 
     def fit(self, data, target,
@@ -112,9 +114,10 @@ class BestEstimator(object):
 
         for i in self.Target.columns:
             if self.Target[i].dtype == object:
-                le = LabelEncoder()
-                le.fit(list(self.Target[i]))
-                self.Target[i] = le.transform(list(self.Target[i]))
+                self.cat = True
+                self.le = LabelEncoder()
+                self.le.fit(list(self.Target[i]))
+                self.Target[i] = self.le.transform(list(self.Target[i]))
 
         X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
 
@@ -200,9 +203,6 @@ class BestEstimator(object):
             # print('grid = True')
 
             if params == False:
-                # print('params = False')
-
-                # print(Best_clf)
 
                 if self.hard_grid == False:
 
@@ -458,8 +458,39 @@ class BestEstimator(object):
     
     
     
-    def pred_grid(self, Test, ID = 'ID', value = 0, prob = False):
-        pass
+    def pred_grid(self, Test, ID = 'ID', value = 0, n = 100, prob = False):
+
+        if ID == None:
+            test = self.Transform(Test, ID = None, value = 0).copy()
+        else :
+            test = self.Transform(Test, ID = ID, value = 0).copy()
+            
+        if prob == False:
+            
+            pred = pd.DataFrame()
+
+            if self.cat :
+                predict = self.le.inverse_transform(self.gr.predict(test))
+            else:
+                predict = self.gr.predict(test)
+
+            if ID == None:
+                pred['Target'] = predict
+            else :
+                pred[ID] = Test[ID]
+                pred['Target'] = predict
+
+        else:
+            predict = self.gr.predict_proba(test)
+
+            if ID == None:
+                pred['Target'] = predict
+            else :
+                pred[ID] = Test[ID]
+                pred['Target'] = predict
+            
+        return(pred)
+    
     
     
     
@@ -475,7 +506,11 @@ class BestEstimator(object):
             self.estim = self.ReFit(self.Data[0:n], self.Target[0:n], ID = None, target_ID = None, value = 0)
             if prob == False:
                 pred = pd.DataFrame()
-                predict = self.estim.predict(test)
+                
+                if self.cat :
+                    predict = self.le.inverse_transform(self.estim.predict(test))
+                else:
+                    predict = self.estim.predict(test)
                 
                 if ID == None:
                     pred['Target'] = predict
@@ -493,9 +528,13 @@ class BestEstimator(object):
                     pred['Target'] = predict
             
         else:
+            pred = pd.DataFrame()
             if prob == False:
-                pred = pd.DataFrame()
-                predict = self.estim.predict(test)
+                
+                if self.cat :
+                    predict = self.le.inverse_transform(self.estim.predict(test))
+                else:
+                    predict = self.estim.predict(test)
                 
                 if ID == None:
                     pred['Target'] = predict
