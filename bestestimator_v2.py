@@ -463,7 +463,7 @@ class BestEstimator(object):
     
     
     
-    def pred_grid(self, Test, ID = 'ID', value = 0, n = 100, prob = False):
+    def pred_grid(self, Test, ID = 'ID', value = 0, prob = False):
 
         if ID == None:
             test = self.Transform(Test, ID = None, value = 0).copy()
