@@ -427,9 +427,13 @@ class BestEstimator(object):
 
     
     
-    def feature_eng(self, Test, value=0, ID='ID'):
+    def Transform(self, Data, value=0, ID = 'ID'):
+        
+        Test = Data.copy()
+        
+        if ID != None:
 
-        Test.drop([ID], axis=1, inplace=True)
+            Test.drop([ID], axis=1, inplace=True)
 
         if type(value) == int:
             Test.fillna(value, inplace=True)
@@ -448,6 +452,8 @@ class BestEstimator(object):
                 encoder = LabelEncoder()
                 encoder.fit(list(Test[i]))
                 Test[i] = encoder.transform(list(Test[i]))
+        return(Test)
+	
 
     def pred(self, Test, gr, prob=False, same=True, ID='ID', value=0):  #
 
