@@ -53,6 +53,7 @@ class BestEstimator(object):
         self.Data = None
         self.le = None
         self.cat = None
+        #self.list_cat = None
         
 
     def fit(self, data, target,
@@ -73,6 +74,7 @@ class BestEstimator(object):
         self.Data.drop([ID], axis=1, inplace=True)
         if target_ID:
             self.Target.drop([ID], axis=1, inplace=True)
+        
 
         if view_nan:
             print("Missing Values :\n")
@@ -112,12 +114,12 @@ class BestEstimator(object):
             if self.Data[i].dtype == float:
                 self.Data[i] = self.Data[i].astype('int')
 
-        for i in self.Target.columns:
-            if self.Target[i].dtype == object:
-                self.cat = True
-                self.le = LabelEncoder()
-                self.le.fit(list(self.Target[i]))
-                self.Target[i] = self.le.transform(list(self.Target[i]))
+        #for i in self.Target.columns:
+         #   if self.Target[i].dtype == object:
+          #      self.cat = True
+           #     self.le = LabelEncoder()
+            #    self.le.fit(list(self.Target[i]))
+             #   self.Target[i] = self.le.transform(list(self.Target[i]))
 
         X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
 
@@ -142,7 +144,7 @@ class BestEstimator(object):
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
 
             
-            if scoring == 'AUC' and np.unique(self.Target).shape[0] > 2:
+            if scoring == 'AUC':
                 scoring = self.AUC
                 score = 'AUC'
             else :
@@ -165,6 +167,7 @@ class BestEstimator(object):
                                                                      clfs[item]['score'].std() * 2)))
 
             Best_clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
+            
 
 
         elif self.type_esti == 'regressor':
@@ -388,7 +391,7 @@ class BestEstimator(object):
         
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
 
-            if loss == 'AUC' and np.unique(self.Target).shape[0] > 2:
+            if loss == 'AUC':
                 
                 
                 self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
@@ -409,6 +412,8 @@ class BestEstimator(object):
             
             self.Decision_Function = self.gr.best_estimator_
             
+            #print(self.gr.classes_)
+            
             
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
@@ -421,7 +426,7 @@ class BestEstimator(object):
         target = Target.copy()
         
         train = self.Transform(train, value = value, ID = ID)
-        target = self.Transform(target, value = value, ID = ID)
+        #target = self.Transform(target, value = value, ID = ID)
         
         self.estim = self.Decision_Function.fit(train, target)
         
@@ -466,13 +471,8 @@ class BestEstimator(object):
             test = self.Transform(Test, ID = ID, value = 0).copy()
             
         if prob == False:
-            
             pred = pd.DataFrame()
-
-            if self.cat :
-                predict = self.le.inverse_transform(self.gr.predict(test))
-            else:
-                predict = self.gr.predict(test)
+            predict = self.gr.predict(test)
 
             if ID == None:
                 pred['Target'] = predict
@@ -481,14 +481,13 @@ class BestEstimator(object):
                 pred['Target'] = predict
 
         else:
-            predict = self.gr.predict_proba(test)
-
             if ID == None:
-                pred['Target'] = predict
+                pred = pd.DataFrame(self.gr.predict_proba(test), columns = self.gr.classes_)
+
             else :
-                pred[ID] = Test[ID]
-                pred['Target'] = predict
-            
+                pred = pd.DataFrame(self.gr.predict_proba(test), columns = self.gr.classes_)
+                pred.insert(loc = 0, column = ID, value = Test[ID])
+
         return(pred)
     
     
@@ -506,11 +505,7 @@ class BestEstimator(object):
             self.estim = self.ReFit(self.Data[0:n], self.Target[0:n], ID = None, target_ID = None, value = 0)
             if prob == False:
                 pred = pd.DataFrame()
-                
-                if self.cat :
-                    predict = self.le.inverse_transform(self.estim.predict(test))
-                else:
-                    predict = self.estim.predict(test)
+                predict = self.estim.predict(test)
                 
                 if ID == None:
                     pred['Target'] = predict
@@ -519,36 +514,35 @@ class BestEstimator(object):
                     pred['Target'] = predict
                 
             else:
-                predict = self.estim.predict_proba(test)
-                
                 if ID == None:
-                    pred['Target'] = predict
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
+
                 else :
-                    pred[ID] = Test[ID]
-                    pred['Target'] = predict
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
+                    pred.insert(loc = 0, column = ID, value = Test[ID])
+                    
             
         else:
             pred = pd.DataFrame()
             if prob == False:
-                
-                if self.cat :
-                    predict = self.le.inverse_transform(self.estim.predict(test))
-                else:
+      
+                if prob == False:
+                    pred = pd.DataFrame()
                     predict = self.estim.predict(test)
                 
-                if ID == None:
-                    pred['Target'] = predict
-                else :
-                    pred[ID] = Test[ID]
-                    pred['Target'] = predict
-            else:
-                predict = self.estim.predict_proba(test)
+                    if ID == None:
+                        pred['Target'] = predict
+                    else :
+                        pred[ID] = Test[ID]
+                        pred['Target'] = predict
                 
+            else:
                 if ID == None:
-                    pred['Target'] = predict
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
+
                 else :
-                    pred[ID] = Test[ID]
-                    pred['Target'] = predict
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
+                    pred.insert(loc = 0, column = ID, value = Test[ID])
             
         return(pred)
 
