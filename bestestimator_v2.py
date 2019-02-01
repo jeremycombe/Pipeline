@@ -43,18 +43,14 @@ class BestEstimator(object):
         self.grid = grid
         self.hard_grid = hard_grid
         self.cv_grid = cv_grid
-
-        #self.Data = Data.copy()
-        #self.Target = Target.copy()
-        #self.dim_ = Data.shape
-        
-        #self.scoring = scoring
         
         self.AUC = make_scorer(multiclass_roc_auc_score)
         
         self.Decision_Function = None
-
-            #self.scoring = make_scorer(multiclass_roc_auc_score)
+        self.gr = None
+        self.estim = None
+        self.Target = None
+        self.Data = None
         
 
     def fit(self, data, target,
@@ -69,58 +65,58 @@ class BestEstimator(object):
            scoring = 'AUC'):
         
         loss = scoring 
-        Data = data.copy()
-        Target = target.copy()
+        self.Data = data.copy()
+        self.Target = target.copy()
 
-        Data.drop([ID], axis=1, inplace=True)
+        self.Data.drop([ID], axis=1, inplace=True)
         if target_ID:
-            Target.drop([ID], axis=1, inplace=True)
+            self.Target.drop([ID], axis=1, inplace=True)
 
         if view_nan:
             print("Missing Values :\n")
 
-            total = Data.isnull().sum().sort_values(ascending=False)
-            percent = (Data.isnull().sum() / Data.isnull().count()).sort_values(ascending=False) * 100
+            total = self.Data.isnull().sum().sort_values(ascending=False)
+            percent = (self.Data.isnull().sum() / self.Data.isnull().count()).sort_values(ascending=False) * 100
             missing_data = pd.concat([total, percent], axis=1, keys=['Total', '%'])
             print("{} \n".format(missing_data[(percent > 0)]))
 
         if type(value) == int:
-            Data.fillna(value, inplace=True)
+            self.Data.fillna(value, inplace=True)
             # self.Test.fillna(value, inplace = True)
             # self.Missing_values()
 
         elif value == 'bfill':
-            Data.fillna('bfill', inplace=True)
+            self.Data.fillna('bfill', inplace=True)
             # self.Test.fillna('bfill', inplace = True)
             # self.Missing_values()
 
         elif value == 'ffill':
-            Data.fillna('ffill', inplace=True)
+            self.Data.fillna('ffill', inplace=True)
             # self.Test.fillna('ffill', inplace = True)
             # self.Missing_values()
 
-        if Data.isnull().any().any() == False:
+        if self.Data.isnull().any().any() == False:
             print('NaN data filled by {} \n'.format(value))
         else:
             print('Fail to fill NaN data')
 
-        for i in Data.columns:  ###########
+        for i in self.Data.columns:  ###########
 
-            if Data[i].dtype == object:
+            if self.Data[i].dtype == object:
                 encoder = LabelEncoder()
-                encoder.fit(list(Data[i]))
-                Data[i] = encoder.transform(list(Data[i]))
+                encoder.fit(list(self.Data[i]))
+                self.Data[i] = encoder.transform(list(self.Data[i]))
 
-            if Data[i].dtype == float:
-                Data[i] = Data[i].astype('int')
+            if self.Data[i].dtype == float:
+                self.Data[i] = self.Data[i].astype('int')
 
-        for i in Target.columns:
-            if Target[i].dtype == object:
+        for i in self.Target.columns:
+            if self.Target[i].dtype == object:
                 le = LabelEncoder()
-                le.fit(list(Target[i]))
-                Target[i] = le.transform(list(Target[i]))
+                le.fit(list(self.Target[i]))
+                self.Target[i] = le.transform(list(self.Target[i]))
 
-        X_tr, X_te, Y_tr, Y_te = train_test_split(Data, Target, random_state=0, test_size=1 / 3)
+        X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
 
         print('Searching for the best regressor on {} data using {} loss... \n'.format(n, scoring))
 
@@ -143,7 +139,7 @@ class BestEstimator(object):
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
 
             
-            if scoring == 'AUC' and np.unique(Target).shape[0] > 2:
+            if scoring == 'AUC' and np.unique(self.Target).shape[0] > 2:
                 scoring = self.AUC
                 score = 'AUC'
             else :
@@ -392,30 +388,28 @@ class BestEstimator(object):
         
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
 
-            if loss == 'AUC' and np.unique(Target).shape[0] > 2:
+            if loss == 'AUC' and np.unique(self.Target).shape[0] > 2:
                 
                 
-                gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
+                self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
                                 verbose=1, refit=True, iid=True)
             else :
-                gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
+                self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
                                     verbose=1, refit=True, iid=True, n_jobs = -1)
 
-            gr.fit(X_tr[0:n_grid], np.ravel(Y_tr[0:n_grid]))
+            self.gr.fit(X_tr[0:n_grid], np.ravel(Y_tr[0:n_grid]))
             
 
-
-            # print(' Best score :', gr.best_score_,   '\n Using these parametres :', gr.best_params_)
-
-            #####
 
             print('\n Finally, the best estimator is : {} {}'.format(Best_clf, self.type_esti))
 
-            print('\n Using these hyperparametres : {}'.format(gr.best_params_))
+            print('\n Using these hyperparametres : {}'.format(self.gr.best_params_))
 
-            print('\n With this {} score : {}'.format(loss, gr.best_score_))
+            print('\n With this {} score : {}'.format(loss, self.gr.best_score_))
             
-            self.Decision_Function = gr.best_estimator_
+            self.Decision_Function = self.gr.best_estimator_
+            
+            
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
             
@@ -429,9 +423,9 @@ class BestEstimator(object):
         train = self.Transform(train, value = value, ID = ID)
         target = self.Transform(target, value = value, ID = ID)
         
-        estim = self.Decision_Function.fit(train, target)
+        self.estim = self.Decision_Function.fit(train, target)
         
-        return(estim)
+        return(self.estim)
 
     
     
@@ -464,44 +458,65 @@ class BestEstimator(object):
     
     
     
-    def pred(self, Test, ID = 'ID', value = 0, prob = False):
+    def pred_grid(self, Test, ID = 'ID', value = 0, prob = False):
         pass
-
-
-    def pred(self, Test, gr, prob=False, same=True, ID='ID', value=0):  #
-
-        # Test.drop([ID], axis = 1, inplace = True)
-        Pred = pd.DataFrame()
-
-        if same == False:
-
-            Test.drop([ID], axis=1, inplace=True)
-
-            if type(value) == int:
-                Test.fillna(value, inplace=True)
-
-            elif value == 'bfill':
-                Test.fillna('bfill', inplace=True)
-
-            elif value == 'ffill':
-                Test.fillna('ffill', inplace=True)
-
-            for i in Test.columns:
-                if Test[i].dtype == float:
-                    Test[i] = Test[i].astype('int')
-
-                elif Test[i].dtype == object:
-                    encoder = LabelEncoder()
-                    encoder.fit(list(Test[i]))
-                    Test[i] = encoder.transform(list(Test[i]))
-
-        if prob == False:
-            # Pred[ID] = Test[ID]
-            Pred['Target'] = gr.predict(Test)
-            return (Pred)
-
+    
+    
+    
+    def pred(self, Test, ID=None, value = 0, target_ID = None, n = 100, prob = False):
+        
+        if ID == None:
+            test = self.Transform(Test, ID = None, value = 0).copy()
+        else :
+            test = self.Transform(Test, ID = ID, value = 0).copy()
+            
+    
+        if self.estim == None:
+            self.estim = self.ReFit(self.Data[0:n], self.Target[0:n], ID = None, target_ID = None, value = 0)
+            if prob == False:
+                pred = pd.DataFrame()
+                predict = self.estim.predict(test)
+                
+                if ID == None:
+                    pred['Target'] = predict
+                else :
+                    pred[ID] = Test[ID]
+                    pred['Target'] = predict
+                
+            else:
+                predict = self.estim.predict_proba(test)
+                
+                if ID == None:
+                    pred['Target'] = predict
+                else :
+                    pred[ID] = Test[ID]
+                    pred['Target'] = predict
+            
         else:
-            return (gr.predict_proba(Test))
+            if prob == False:
+                pred = pd.DataFrame()
+                predict = self.estim.predict(test)
+                
+                if ID == None:
+                    pred['Target'] = predict
+                else :
+                    pred[ID] = Test[ID]
+                    pred['Target'] = predict
+            else:
+                predict = self.estim.predict_proba(test)
+                
+                if ID == None:
+                    pred['Target'] = predict
+                else :
+                    pred[ID] = Test[ID]
+                    pred['Target'] = predict
+            
+        return(pred)
+
+            
+            
+
+    
         
 
     def grid(self, clf, params, cv=3, n=100000):
