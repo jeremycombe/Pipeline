@@ -30,22 +30,19 @@ def multiclass_roc_auc_score(y_test, y_pred, average="macro"):
 
 class BestEstimator(object):
 
-    def __init__(self, 
-                 type_esti = 'classifier', 
-                 cv = 3, 
-                 grid = True, 
-                 hard_grid = False,
-                 cv_grid = 3):
-        
+    def __init__(self,
+                 type_esti='classifier',
+                 cv=3,
+                 grid=True,
+                 hard_grid=False,
+                 cv_grid=3):
+
         self.type_esti = type_esti
-        #self.params = params
         self.cv = cv
         self.grid = grid
         self.hard_grid = hard_grid
         self.cv_grid = cv_grid
-        
-        self.AUC = make_scorer(multiclass_roc_auc_score)
-        
+
         self.Decision_Function = None
         self.gr = None
         self.estim = None
@@ -53,28 +50,23 @@ class BestEstimator(object):
         self.Data = None
         self.le = None
         self.cat = None
-        #self.list_cat = None
-        
 
     def fit(self, data, target,
-            ID = 'ID',
-            target_ID = True,
-            n = 1000,
-            n_grid = 1000,
-            value_nan = 0,
-            view_nan = True,
-           params = False,
-           value = 0,
-           scoring = 'AUC'):
-        
-        loss = scoring 
+            ID='ID',
+            target_ID=True,
+            n=1000,
+            n_grid=1000,
+            view_nan=True,
+            value=0,
+            scoring='roc_auc'):
+
+        loss = scoring
         self.Data = data.copy()
         self.Target = target.copy()
 
         self.Data.drop([ID], axis=1, inplace=True)
         if target_ID:
             self.Target.drop([ID], axis=1, inplace=True)
-        
 
         if view_nan:
             print("Missing Values :\n")
@@ -114,12 +106,12 @@ class BestEstimator(object):
             if self.Data[i].dtype == float:
                 self.Data[i] = self.Data[i].astype('int')
 
-        #for i in self.Target.columns:
-         #   if self.Target[i].dtype == object:
-          #      self.cat = True
-           #     self.le = LabelEncoder()
-            #    self.le.fit(list(self.Target[i]))
-             #   self.Target[i] = self.le.transform(list(self.Target[i]))
+        for i in self.Target.columns:
+            if self.Target[i].dtype == object:
+                self.cat = True
+                self.le = LabelEncoder()
+                self.le.fit(list(self.Target[i]))
+                self.Target[i] = self.le.transform(list(self.Target[i]))
 
         X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
 
@@ -143,19 +135,17 @@ class BestEstimator(object):
             # clfs['LR'] = {'clf': LogisticClassifier(), 'name': 'LR'}
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
 
-            
-            if scoring == 'AUC':
-                scoring = self.AUC
-                score = 'AUC'
-            else :
-                score = 'AUC'
-                scoring = 'roc_auc'
-            
+            # if scoring == 'AUC' and np.unique(self.Target).shape[0] > 2:
+            #    scoring = self.AUC
+            #   score = 'AUC'
+            # elif scoring == 'AUC':                #########################################
+            #   score = 'AUC'     ##########################################
+            #  scoring = 'roc_auc' #########################################
+
             for item in clfs:
-                
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(X_tr[0:n]), np.ravel(Y_tr[0:n]),
                                         cv=self.cv, scoring=scoring)
-               
+
                 Score_mean = Score.mean()
                 STD2 = Score.std() * 2
 
@@ -167,7 +157,7 @@ class BestEstimator(object):
                                                                      clfs[item]['score'].std() * 2)))
 
             Best_clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
-            
+
 
 
         elif self.type_esti == 'regressor':
@@ -188,7 +178,6 @@ class BestEstimator(object):
             for item in clfs:
                 # print(Y_tr[0:30])
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(X_tr[0:n]), np.array(np.ravel(Y_tr[0:n])),
-                                        ########""
                                         cv=self.cv, scoring=scoring)
                 Score_mean = Score.mean()
                 STD2 = Score.std() * 2
@@ -205,178 +194,178 @@ class BestEstimator(object):
         if self.grid:
             # print('grid = True')
 
-            if params == False:
-
-                if self.hard_grid == False:
-
-                    if Best_clf == 'Extra Tree':
-
-                        if self.type_esti == 'regressor':
-
-                            params = {'n_estimators': [100, 300, 600],
-                                      'criterion': ['mse', 'mae'],
-                                      'max_depth': [None, 5, 10]}
-
-                        else:
-
-                            params = {'n_estimators': [100, 300, 600],
-                                      'criterion': ['gini', 'entropy'],
-                                      'max_depth': [None, 5, 10]}
-
-                    if Best_clf == 'Gradient Boosting':
-
-                        if self.type_esti == 'regressor':
-
-                            params = {'n_estimators': [100, 300, 600],
-                                      'max_depth': [5, 10, None],
-                                      'learning_rate': [.001, .01, .1],
-                                      'loss': ['ls', 'lad']}
-                        else:
-
-                            params = {'n_estimators': [100, 300, 600],
-                                      'max_depth': [5, 10, None],
-                                      'learning_rate': [.001, .01, .1],
-                                      'loss': ['deviance', 'exponential']}
 
 
-                    elif Best_clf == 'Random Forest':
-                        #  print('Best_clf = dt ou rf')
+            if self.hard_grid == False:
 
-                        if self.type_esti == 'regressor':
+                if Best_clf == 'Extra Tree':
 
-                            params = {'n_estimators': [10, 100, 300],
-                                      'max_depth': [5, 10, None],
-                                      'criterion': ['mse', 'mae']}
+                    if self.type_esti == 'regressor':
 
-                        else:
+                        params = {'n_estimators': [100, 300, 600],
+                                  'criterion': ['mse', 'mae'],
+                                  'max_depth': [None, 5, 10]}
 
-                            params = {'n_estimators': [10, 100, 300],
-                                      'max_depth': [5, 10, None],
-                                      'criterion': ['gini', 'entropy']}
+                    else:
 
-                    elif Best_clf == 'Decision Tree':
+                        params = {'n_estimators': [100, 300, 600],
+                                  'criterion': ['gini', 'entropy'],
+                                  'max_depth': [None, 5, 10]}
 
-                        if self.type_esti == 'regressor':
+                if Best_clf == 'Gradient Boosting':
 
-                            params = {'max_depth': [5, 10, 50, None],
-                                      'criterion': ['mse', 'friedman_mse', 'mae']}
+                    if self.type_esti == 'regressor':
 
-                        else:
+                        params = {'n_estimators': [100, 300, 600],
+                                  'max_depth': [5, 10, None],
+                                  'learning_rate': [.001, .01, .1],
+                                  'loss': ['ls', 'lad']}
+                    else:
 
-                            params = {'max_depth': [5, 10, 50, None],
-                                      'criterion': ['gini', 'entropy']}
-
-
-                    elif Best_clf == 'XGBoost':
-                        # print('Best_clf = xgb')
-
-                        params = {'eta': [.01, .1, .3],
-                                  'max_depth': [5, 10, 15],
-                                  'gamma': [0, .1, .01]}
-
-                    elif Best_clf == 'Bagging':
-                        # print('best_clf = bag)')
-
-                        params = {'n_estimators': [100, 300, 600]}
-
-                    elif Best_clf == 'KNN':
-
-                        params = {'n_neighbors': [2, 5, 10, 30, 40],
-                                  'p': [1, 2]}
-
-                    elif Best_clf == 'SVM':
-
-                        params = {'C': {1, .5, .1, 5},
-                                  'tol': [.01, .001, .1, .0001]}
+                        params = {'n_estimators': [100, 300, 600],
+                                  'max_depth': [5, 10, None],
+                                  'learning_rate': [.001, .01, .1],
+                                  'loss': ['deviance', 'exponential']}
 
 
+                elif Best_clf == 'Random Forest':
+                    #  print('Best_clf = dt ou rf')
 
-                else:
+                    if self.type_esti == 'regressor':
 
-                    if Best_clf == 'Extra Tree':
+                        params = {'n_estimators': [10, 100, 300],
+                                  'max_depth': [5, 10, None],
+                                  'criterion': ['mse', 'mae']}
 
-                        if self.type_esti == 'regressor':
+                    else:
 
-                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
-                                      'criterion': ['mae', 'mse'],
-                                      'max_depth': [None, 5, 10, 15, 20, 25]}
+                        params = {'n_estimators': [10, 100, 300],
+                                  'max_depth': [5, 10, None],
+                                  'criterion': ['gini', 'entropy']}
 
-                        else:
+                elif Best_clf == 'Decision Tree':
 
-                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
-                                      'criterion': ['gini', 'entropy'],
-                                      'max_depth': [None, 5, 10, 15, 20, 25]}
+                    if self.type_esti == 'regressor':
 
-                    if Best_clf == 'Gradient Boosting':
+                        params = {'max_depth': [5, 10, 50, None],
+                                  'criterion': ['mse', 'friedman_mse', 'mae']}
 
-                        if self.type_esti == 'regressor':
+                    else:
 
-                            params = {'n_estimators': [100, 300, 600, 1000, 1200],
-                                      'max_depth': [5, 10, 15, 25, None],
-                                      'learning_rate': [.001, .01, .1],
-                                      'loss': ['ls', 'lad', 'huber', 'quantile'],
-                                      'criterion': ['mse', 'friedman_mse']}
-                        else:
-
-                            params = {'n_estimators': [100, 300, 600, 1000, 1200],
-                                      'max_depth': [5, 10, 15, 25, None],
-                                      'learning_rate': [.001, .01, .1],
-                                      'loss': ['deviance', 'exponential'],
-                                      'criterion': ['mse', 'friedman_mse']}
+                        params = {'max_depth': [5, 10, 50, None],
+                                  'criterion': ['gini', 'entropy']}
 
 
-                    elif Best_clf == 'Random Forest':
-                        #  print('Best_clf = dt ou rf')
+                elif Best_clf == 'XGBoost':
+                    # print('Best_clf = xgb')
 
-                        if self.type_esti == 'regressor':
+                    params = {'eta': [.01, .1, .3],
+                              'max_depth': [5, 10, 15],
+                              'gamma': [0, .1, .01]}
 
-                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
-                                      'max_depth': [5, 10, 15, 20, 25, None],
-                                      'criterion': ['mse', 'mae']}
+                elif Best_clf == 'Bagging':
+                    # print('best_clf = bag)')
 
-                        else:
+                    params = {'n_estimators': [100, 300, 600]}
 
-                            params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
-                                      'max_depth': [5, 10, 15, 20, 25],
-                                      'criterion': ['gini', 'entropy']}
+                elif Best_clf == 'KNN':
 
-                    elif Best_clf == 'Decision Tree':
+                    params = {'n_neighbors': [2, 5, 10, 30, 40],
+                              'p': [1, 2]}
 
-                        if params == 'regressor':
+                elif Best_clf == 'SVM':
 
-                            params = {'max_depth': [5, 10, 50, 100, None],
-                                      'criterion': ['mse', 'friedman_mse', 'mae'],
-                                      'splitter': ['best', 'random']}
-
-                        else:
-
-                            params = {'max_depth': [5, 10, 50, 100, None],
-                                      'criterion': ['gini', 'entropy'],
-                                      'splitter': ['best', 'random']}
+                    params = {'C': {1, .5, .1, 5},
+                              'tol': [.01, .001, .1, .0001]}
 
 
-                    elif Best_clf == 'XGBoost':
-                        # print('Best_clf = xgb')
 
-                        params = {'eta': [0.001, .01, .1, .3, 1],
+            else:
+
+                if Best_clf == 'Extra Tree':
+
+                    if self.type_esti == 'regressor':
+
+                        params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
+                                  'criterion': ['mae', 'mse'],
+                                  'max_depth': [None, 5, 10, 15, 20, 25]}
+
+                    else:
+
+                        params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
+                                  'criterion': ['gini', 'entropy'],
+                                  'max_depth': [None, 5, 10, 15, 20, 25]}
+
+                if Best_clf == 'Gradient Boosting':
+
+                    if self.type_esti == 'regressor':
+
+                        params = {'n_estimators': [100, 300, 600, 1000, 1200],
+                                  'max_depth': [5, 10, 15, 25, None],
+                                  'learning_rate': [.001, .01, .1],
+                                  'loss': ['ls', 'lad', 'huber', 'quantile'],
+                                  'criterion': ['mse', 'friedman_mse']}
+                    else:
+
+                        params = {'n_estimators': [100, 300, 600, 1000, 1200],
+                                  'max_depth': [5, 10, 15, 25, None],
+                                  'learning_rate': [.001, .01, .1],
+                                  'loss': ['deviance', 'exponential'],
+                                  'criterion': ['mse', 'friedman_mse']}
+
+
+                elif Best_clf == 'Random Forest':
+                    #  print('Best_clf = dt ou rf')
+
+                    if self.type_esti == 'regressor':
+
+                        params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
+                                  'max_depth': [5, 10, 15, 20, 25, None],
+                                  'criterion': ['mse', 'mae']}
+
+                    else:
+
+                        params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
                                   'max_depth': [5, 10, 15, 20, 25],
-                                  'gamma': [0, .1, .01, .001]}
+                                  'criterion': ['gini', 'entropy']}
 
-                    elif Best_clf == 'Bagging':
-                        # print('best_clf = bag)')
+                elif Best_clf == 'Decision Tree':
 
-                        params = {'n_estimators': [100, 300, 600, 1000, 1200, 1500]}
+                    if params == 'regressor':
 
-                    elif Best_clf == 'KNN':
+                        params = {'max_depth': [5, 10, 50, 100, None],
+                                  'criterion': ['mse', 'friedman_mse', 'mae'],
+                                  'splitter': ['best', 'random']}
 
-                        params = {'n_neighbors': [2, 5, 10, 30, 40, 70, 100],
-                                  'p': [1, 2, 3]}
+                    else:
 
-                    elif Best_clf == 'SVM':
+                        params = {'max_depth': [5, 10, 50, 100, None],
+                                  'criterion': ['gini', 'entropy'],
+                                  'splitter': ['best', 'random']}
 
-                        params = {'C': {1, .5, .1, 5, .01, .001},
-                                  'tol': [.01, .001, .1, .0001, 1],
-                                  'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
+
+                elif Best_clf == 'XGBoost':
+                    # print('Best_clf = xgb')
+
+                    params = {'eta': [0.001, .01, .1, .3, 1],
+                              'max_depth': [5, 10, 15, 20, 25],
+                              'gamma': [0, .1, .01, .001]}
+
+                elif Best_clf == 'Bagging':
+                    # print('best_clf = bag)')
+
+                    params = {'n_estimators': [100, 300, 600, 1000, 1200, 1500]}
+
+                elif Best_clf == 'KNN':
+
+                    params = {'n_neighbors': [2, 5, 10, 30, 40, 70, 100],
+                              'p': [1, 2, 3]}
+
+                elif Best_clf == 'SVM':
+
+                    params = {'C': {1, .5, .1, 5, .01, .001},
+                              'tol': [.01, .001, .1, .0001, 1],
+                              'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
             if self.hard_grid:
                 print('\n Searching for the best hyperparametres of {} using hard_grid on {} data among : \n'.format(
@@ -387,59 +376,44 @@ class BestEstimator(object):
             print('{} \n'.format(params))
             # print('Starting GridSearchCV using {} Classifier with {} folds \n'.format(Best_clf, cv_grid))
 
-            
-        
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
 
-            if loss == 'AUC':
-                
-                
-                self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
-                                verbose=1, refit=True, iid=True)
-            else :
-                self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring, 
-                                    verbose=1, refit=True, iid=True, n_jobs = -1)
+            self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring,
+                                   verbose=1, refit=True, iid=True, n_jobs=-1)
 
             self.gr.fit(X_tr[0:n_grid], np.ravel(Y_tr[0:n_grid]))
-            
-
 
             print('\n Finally, the best estimator is : {} {}'.format(Best_clf, self.type_esti))
 
             print('\n Using these hyperparametres : {}'.format(self.gr.best_params_))
 
             print('\n With this {} score : {}'.format(loss, self.gr.best_score_))
-            
+
             self.Decision_Function = self.gr.best_estimator_
-            
-            #print(self.gr.classes_)
-            
-            
+
+            # print(self.gr.classes_)
+
+
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
-            
-            
-            
-    def ReFit(self, Train, Target, ID = 'ID', target_ID = 'ID', value = 0):
-        
+
+    def ReFit(self, Train, Target, ID='ID', target_ID='ID', value=0):
+
         train = Train.copy()
         target = Target.copy()
-        
-        train = self.Transform(train, value = value, ID = ID)
-        #target = self.Transform(target, value = value, ID = ID)
-        
+
+        train = self.Transform(train, value=value, ID=ID)
+        # target = self.Transform(target, value = value, ID = ID)
+
         self.estim = self.Decision_Function.fit(train, target)
-        
-        return(self.estim)
 
-    
-    
-    def Transform(self, Data, value=0, ID = 'ID'):
-        
+        return (self.estim)
+
+    def Transform(self, Data, value=0, ID='ID'):
+
         Test = Data.copy()
-        
-        if ID != None:
 
+        if ID != None:
             Test.drop([ID], axis=1, inplace=True)
 
         if type(value) == int:
@@ -459,112 +433,119 @@ class BestEstimator(object):
                 encoder = LabelEncoder()
                 encoder.fit(list(Test[i]))
                 Test[i] = encoder.transform(list(Test[i]))
-        return(Test)
-    
-    
-    
-    def pred_grid(self, Test, ID = 'ID', value = 0, prob = False):
+        return (Test)
+
+    def pred_grid(self, Test, ID='ID', value=0, prob=False):
 
         if ID == None:
-            test = self.Transform(Test, ID = None, value = 0).copy()
-        else :
-            test = self.Transform(Test, ID = ID, value = 0).copy()
-            
+            test = self.Transform(Test, ID=None, value=0).copy()
+        else:
+            test = self.Transform(Test, ID=ID, value=0).copy()
+
         if prob == False:
             pred = pd.DataFrame()
             predict = self.gr.predict(test)
 
             if ID == None:
                 pred['Target'] = predict
-            else :
+            else:
                 pred[ID] = Test[ID]
                 pred['Target'] = predict
 
         else:
             if ID == None:
-                pred = pd.DataFrame(self.gr.predict_proba(test), columns = self.gr.classes_)
+                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.gr.classes_)
 
-            else :
-                pred = pd.DataFrame(self.gr.predict_proba(test), columns = self.gr.classes_)
-                pred.insert(loc = 0, column = ID, value = Test[ID])
+            else:
+                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.gr.classes_)
+                pred.insert(loc=0, column=ID, value=Test[ID])
 
-        return(pred)
-    
-    
-    
-    
-    def pred(self, Test, ID=None, value = 0, target_ID = None, n = 1000, prob = False):
-        
+        return (pred)
+
+    def pred(self, Test, ID=None, value=0, target_ID=None, n=1000, prob=False):
+
         if ID == None:
-            test = self.Transform(Test, ID = None, value = 0).copy()
-        else :
-            test = self.Transform(Test, ID = ID, value = 0).copy()
-            
-    
+            test = self.Transform(Test, ID=None, value=0).copy()
+        else:
+            test = self.Transform(Test, ID=ID, value=0).copy()
+
         if self.estim == None:
-            self.estim = self.ReFit(self.Data[0:n], self.Target[0:n], ID = None, target_ID = None, value = 0)
+            self.estim = self.ReFit(self.Data[0:n], self.Target[0:n], ID=None, target_ID=None, value=0)
             if prob == False:
                 pred = pd.DataFrame()
                 predict = self.estim.predict(test)
-                
+
                 if ID == None:
                     pred['Target'] = predict
-                else :
+                else:
                     pred[ID] = Test[ID]
                     pred['Target'] = predict
-                
+
             else:
                 if ID == None:
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
 
-                else :
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
-                    pred.insert(loc = 0, column = ID, value = Test[ID])
-                    
-            
+                else:
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
+                    pred.insert(loc=0, column=ID, value=Test[ID])
+
+
         else:
             pred = pd.DataFrame()
             if prob == False:
-      
+
                 if prob == False:
                     pred = pd.DataFrame()
                     predict = self.estim.predict(test)
-                
+
                     if ID == None:
                         pred['Target'] = predict
-                    else :
+                    else:
                         pred[ID] = Test[ID]
                         pred['Target'] = predict
-                
+
             else:
                 if ID == None:
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
 
-                else :
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns = self.estim.classes_)
-                    pred.insert(loc = 0, column = ID, value = Test[ID])
-            
-        return(pred)
+                else:
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
+                    pred.insert(loc=0, column=ID, value=Test[ID])
 
-            
-            
+        return (pred)
 
-    
-        
+    def custom_grid(self, Train, Target, ID='ID', target_ID=True,
+                    n=1000, metric='AUC', params=None, cv=3, DF=None, value=0):
 
-    def grid(self, clf, params, cv=3, n=100000):
+        target = Target.copy()
+        loss = metric
 
-        X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
+        for i in target.columns:
+            if target[i].dtype == object:
+                le = LabelEncoder()
+                le.fit(list(target[i]))
+                target[i] = le.transform(list(target[i]))
 
-        gr = GridSearchCV(clf, param_grid=params, cv=cv, scoring=self.AUC, n_jobs=-1,
+        if ID != None:
+            train = self.Transform(Train, ID=ID, value=value)
+            if target_ID:
+                target.drop([ID], axis=1, inplace=True)
+        if DF == None:
+            DF = self.Decision_Function
+
+        # if metric == 'AUC':
+        #   metric = self.AUC
+        #  loss = 'AUC'
+
+        gr = GridSearchCV(DF, param_grid=params, cv=cv, scoring=metric, n_jobs=-1,
                           verbose=1, refit=True, iid=True);
 
-        gr.fit(X_tr[0:n], np.ravel(Y_tr[0:n]))
+        gr.fit(train[0:n], np.ravel(target[0:n]))
 
-        # print(' Best score :', gr.best_score_,   '\n Using this parametres :', gr.best_params_, '\n With :', clf)
-        print(' Best score on Train:', gr.best_score_, '\n Using this parametres :', gr.best_params_,
-              '\n With : \n {} '.format(clf))
-        return gr
+        print('\n Best hyperparametres : {}'.format(gr.best_params_))
+
+        print('\n Giving this {} score : {}'.format(loss, gr.best_score_))
+
 
 
 
