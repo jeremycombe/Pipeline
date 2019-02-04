@@ -493,7 +493,7 @@ class BestEstimator(object):
     
     
     
-    def pred(self, Test, ID=None, value = 0, target_ID = None, n = 100, prob = False):
+    def pred(self, Test, ID=None, value = 0, target_ID = None, n = 1000, prob = False):
         
         if ID == None:
             test = self.Transform(Test, ID = None, value = 0).copy()
