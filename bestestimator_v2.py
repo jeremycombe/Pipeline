@@ -49,7 +49,7 @@ class BestEstimator(object):
         self.Target = None
         self.Data = None
         self.le = None
-        self.cat = None
+        self.lab = None
         self.best_score = None
 
     def fit(self, data, target,
@@ -110,7 +110,7 @@ class BestEstimator(object):
 
         for i in self.Target.columns:
             if self.Target[i].dtype == object:
-                self.cat = True
+                #self.cat = True
                 self.le = LabelEncoder()
                 self.le.fit(list(self.Target[i]))
                 self.Target[i] = self.le.transform(list(self.Target[i]))
@@ -397,6 +397,8 @@ class BestEstimator(object):
 
             #print(self.best_score)
 
+            self.lab = self.le.inverse_transform(self.gr.classes_)
+
 
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
@@ -466,10 +468,12 @@ class BestEstimator(object):
 
         else:
             if ID == None:
-                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
+                #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
+                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
 
             else:
-                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
+                #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
+                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
                 pred.insert(loc=0, column=ID, value=Test[ID])
 
         return (pred)
@@ -500,10 +504,10 @@ class BestEstimator(object):
 
             else:
                 if ID == None:
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.le.inverse_transform(self.estim.classes_))
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.lab)
 
                 else:
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.le.inverse_transform(self.estim.classes_))
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.lab)
                     pred.insert(loc=0, column=ID, value=Test[ID])
 
 
@@ -523,10 +527,10 @@ class BestEstimator(object):
 
             else:
                 if ID == None:
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.lab)
 
                 else:
-                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
+                    pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.lab)
                     pred.insert(loc=0, column=ID, value=Test[ID])
 
         return (pred)
