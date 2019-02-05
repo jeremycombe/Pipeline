@@ -50,6 +50,7 @@ class BestEstimator(object):
         self.Data = None
         self.le = None
         self.lab = None
+        self.lab_num = None
         self.best_score = None
 
     def fit(self, data, target,
@@ -114,6 +115,8 @@ class BestEstimator(object):
                 self.le = LabelEncoder()
                 self.le.fit(list(self.Target[i]))
                 self.Target[i] = self.le.transform(list(self.Target[i]))
+            else:
+                self.lab_num = True
 
         X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
 
@@ -397,7 +400,10 @@ class BestEstimator(object):
 
             #print(self.best_score)
 
+            print(self.gr.classes_)
+
             self.lab = self.le.inverse_transform(self.gr.classes_)
+
 
 
         else:
@@ -458,7 +464,12 @@ class BestEstimator(object):
 
         if prob == False:
             pred = pd.DataFrame()
-            predict = self.le.inverse_transform(self.gr.predict(test))
+
+
+            if self.lab_num:
+                predict = self.gr.predict(test)
+            else:
+                predict = self.le.inverse_transform(self.gr.predict(test))
 
             if ID == None:
                 pred['Target'] = predict
@@ -468,12 +479,16 @@ class BestEstimator(object):
 
         else:
             if ID == None:
-                #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
-                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
+                if self.lab_num:
+                    pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
+                else:
+                    pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.gr.classes_)
 
             else:
-                #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
-                pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
+                if self.lab_num:
+                    pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.gr.classes_)
+                else:
+                    pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
                 pred.insert(loc=0, column=ID, value=Test[ID])
 
         return (pred)
