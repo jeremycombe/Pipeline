@@ -397,6 +397,8 @@ class BestEstimator(object):
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
 
+
+
     def ReFit(self, Train, Target, ID='ID', target_ID='ID', value=0):
 
         train = Train.copy()
@@ -408,6 +410,8 @@ class BestEstimator(object):
         self.estim = self.Decision_Function.fit(train, target)
 
         return (self.estim)
+
+
 
     def Transform(self, Data, value=0, ID='ID'):
 
@@ -434,6 +438,8 @@ class BestEstimator(object):
                 encoder.fit(list(Test[i]))
                 Test[i] = encoder.transform(list(Test[i]))
         return (Test)
+
+
 
     def pred_grid(self, Test, ID='ID', value=0, prob=False):
 
@@ -462,6 +468,9 @@ class BestEstimator(object):
 
         return (pred)
 
+
+
+
     def pred(self, Test, ID=None, value=0, target_ID=None, n=1000, prob=False):
 
         if ID == None:
@@ -471,6 +480,7 @@ class BestEstimator(object):
 
         if self.estim == None:
             self.estim = self.ReFit(self.Data[0:n], self.Target[0:n], ID=None, target_ID=None, value=0)
+
             if prob == False:
                 pred = pd.DataFrame()
                 predict = self.estim.predict(test)
@@ -514,6 +524,9 @@ class BestEstimator(object):
 
         return (pred)
 
+
+
+
     def custom_grid(self, Train, Target, ID='ID', target_ID=True,
                     n=1000, metric='AUC', params=None, cv=3, DF=None, value=0):
 
@@ -545,6 +558,33 @@ class BestEstimator(object):
         print('\n Best hyperparametres : {}'.format(gr.best_params_))
 
         print('\n Giving this {} score : {}'.format(loss, gr.best_score_))
+
+
+
+
+    def Bagg_fit(self, Train, Target, n_estimators = None, type_esti = 'Classifier', n = 1000,
+                 cv = 3, value = 0, ID = None, metric = None):
+
+        params = {'n_estimators' : n_estimators}
+
+        train = self.Transform(Train, value = value, ID = ID)
+        target = self.Transform(Target, value = value, ID = ID)
+
+        Best_DF = self.Decision_Function
+
+        if type_esti == 'Classifier':
+            esti = BaggingClassifier(base_estimator = Best_DF)
+        elif type_esti == 'Regressor':
+            esti = BaggingRegressor(base_estimator = Best_DF)
+
+
+        DF =  GridSearchCV(estimator = esti, param_grid = params, n_jobs = -1, verbose = 1)
+
+        DF.fit(train[0:n], np.ravel(target[0:n]))
+
+        print('\n Best hyperparametres : {}'.format(DF.best_params_))
+
+        print('\n Giving this {} score : {}'.format(metric, DF.best_score_))
 
 
 
