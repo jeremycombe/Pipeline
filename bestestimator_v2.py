@@ -31,7 +31,7 @@ def multiclass_roc_auc_score(y_test, y_pred, average="macro"):
 class BestEstimator(object):
 
     def __init__(self,
-                 type_esti='classifier',
+                 type_esti='Classifier',
                  cv=3,
                  grid=True,
                  hard_grid=False,
@@ -50,6 +50,7 @@ class BestEstimator(object):
         self.Data = None
         self.le = None
         self.cat = None
+        self.best_score = None
 
     def fit(self, data, target,
             ID='ID',
@@ -117,7 +118,7 @@ class BestEstimator(object):
 
         print('Searching for the best regressor on {} data using {} loss... \n'.format(n, scoring))
 
-        if self.type_esti == 'classifier':
+        if self.type_esti == 'Classifier':
 
             # print('\n Searching for the best classifier on {} data... \n'.format(n))
 
@@ -160,7 +161,7 @@ class BestEstimator(object):
 
 
 
-        elif self.type_esti == 'regressor':
+        elif self.type_esti == 'Regressor':
 
             clfs = {}
             clfs['Bagging'] = {'clf': BaggingRegressor(), 'name': 'Bagging'}
@@ -200,7 +201,7 @@ class BestEstimator(object):
 
                 if Best_clf == 'Extra Tree':
 
-                    if self.type_esti == 'regressor':
+                    if self.type_esti == 'Regressor':
 
                         params = {'n_estimators': [100, 300, 600],
                                   'criterion': ['mse', 'mae'],
@@ -214,7 +215,7 @@ class BestEstimator(object):
 
                 if Best_clf == 'Gradient Boosting':
 
-                    if self.type_esti == 'regressor':
+                    if self.type_esti == 'Regressor':
 
                         params = {'n_estimators': [100, 300, 600],
                                   'max_depth': [5, 10, None],
@@ -231,7 +232,7 @@ class BestEstimator(object):
                 elif Best_clf == 'Random Forest':
                     #  print('Best_clf = dt ou rf')
 
-                    if self.type_esti == 'regressor':
+                    if self.type_esti == 'Regressor':
 
                         params = {'n_estimators': [10, 100, 300],
                                   'max_depth': [5, 10, None],
@@ -245,7 +246,7 @@ class BestEstimator(object):
 
                 elif Best_clf == 'Decision Tree':
 
-                    if self.type_esti == 'regressor':
+                    if self.type_esti == 'Regressor':
 
                         params = {'max_depth': [5, 10, 50, None],
                                   'criterion': ['mse', 'friedman_mse', 'mae']}
@@ -284,7 +285,7 @@ class BestEstimator(object):
 
                 if Best_clf == 'Extra Tree':
 
-                    if self.type_esti == 'regressor':
+                    if self.type_esti == 'Regressor':
 
                         params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
                                   'criterion': ['mae', 'mse'],
@@ -298,7 +299,7 @@ class BestEstimator(object):
 
                 if Best_clf == 'Gradient Boosting':
 
-                    if self.type_esti == 'regressor':
+                    if self.type_esti == 'Regressor':
 
                         params = {'n_estimators': [100, 300, 600, 1000, 1200],
                                   'max_depth': [5, 10, 15, 25, None],
@@ -317,7 +318,7 @@ class BestEstimator(object):
                 elif Best_clf == 'Random Forest':
                     #  print('Best_clf = dt ou rf')
 
-                    if self.type_esti == 'regressor':
+                    if self.type_esti == 'Regressor':
 
                         params = {'n_estimators': [10, 100, 300, 600, 1000, 1200],
                                   'max_depth': [5, 10, 15, 20, 25, None],
@@ -331,7 +332,7 @@ class BestEstimator(object):
 
                 elif Best_clf == 'Decision Tree':
 
-                    if params == 'regressor':
+                    if params == 'Regressor':
 
                         params = {'max_depth': [5, 10, 50, 100, None],
                                   'criterion': ['mse', 'friedman_mse', 'mae'],
@@ -391,7 +392,9 @@ class BestEstimator(object):
 
             self.Decision_Function = self.gr.best_estimator_
 
-            # print(self.gr.classes_)
+            self.best_score = self.gr.best_score_
+
+            #print(self.best_score)
 
 
         else:
@@ -585,6 +588,11 @@ class BestEstimator(object):
         print('\n Best hyperparametres : {}'.format(DF.best_params_))
 
         print('\n Giving this {} score : {}'.format(metric, DF.best_score_))
+
+        if self.gr.best_score_ < DF.best_score_:
+            self.Decision_Function = DF.best_estimator_
+
+        #print(self.Decision_Function)
 
 
 
