@@ -29,6 +29,14 @@ class BestEstimator(object):
                  hard_grid=False,
                  cv_grid=3):
 
+        """
+        :param type_esti: Classifier or Regressor
+        :param cv: fold number for the cross validation first check
+        :param grid: if True, do a GridSearchCV
+        :param hard_grid: if True, do a GridSearchCV with a large set of hyperparamatres
+        :param cv_grid: fold number for the GridSearchCV
+        """
+
         self.type_esti = type_esti
         self.cv = cv
         self.grid = grid
@@ -54,6 +62,21 @@ class BestEstimator(object):
             value=0,
             scoring='roc_auc'):
 
+        """
+        Fit all Machine Learning algorithms on a train and target dataset then,
+        search the best hyperparametres of the best algorithm and return them with the loss score
+
+        :param data: training dataset
+        :param target: target dataset
+        :param ID: the ID column of the train dataset
+        :param target_ID: if True, drop the ID column of the target dataset
+        :param n: size of the sample for the first algorithms check
+        :param n_grid: size of the sample for the GridSearchCV
+        :param view_nan: if True, display some statistics on missing values
+        :param value: the value for fill missing values
+        :param scoring: loss function to check the estimator performance
+        """
+
         loss = scoring
         self.Data = data.copy()
         self.Target = target.copy()
@@ -72,18 +95,12 @@ class BestEstimator(object):
 
         if type(value) == int:
             self.Data.fillna(value, inplace=True)
-            # self.Test.fillna(value, inplace = True)
-            # self.Missing_values()
 
         elif value == 'bfill':
             self.Data.fillna('bfill', inplace=True)
-            # self.Test.fillna('bfill', inplace = True)
-            # self.Missing_values()
 
         elif value == 'ffill':
             self.Data.fillna('ffill', inplace=True)
-            # self.Test.fillna('ffill', inplace = True)
-            # self.Missing_values()
 
         if self.Data.isnull().any().any() == False:
             print('NaN data filled by {} \n'.format(value))
@@ -116,8 +133,6 @@ class BestEstimator(object):
 
         if self.type_esti == 'Classifier':
 
-            # print('\n Searching for the best classifier on {} data... \n'.format(n))
-
             clfs = {}
             clfs['Bagging'] = {'clf': BaggingClassifier(), 'name': 'Bagging'}
             clfs['Gradient Boosting'] = {'clf': GradientBoostingClassifier(), 'name': 'Gradient Boosting'}
@@ -126,18 +141,8 @@ class BestEstimator(object):
                                      'name': 'Random Forest'}
             clfs['Decision Tree'] = {'clf': DecisionTreeClassifier(), 'name': 'Decision Tree'}
             clfs['Extra Tree'] = {'clf': ExtraTreesClassifier(n_jobs=-1), 'name': 'Extra Tree'}
-
             clfs['KNN'] = {'clf': KNeighborsClassifier(n_jobs=-1), 'name': 'KNN'}
-            # clfs['NN'] = {'clf': MLPClassifier(), 'name': 'MLPClassifier'
-            # clfs['LR'] = {'clf': LogisticClassifier(), 'name': 'LR'}
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
-
-            # if scoring == 'AUC' and np.unique(self.Target).shape[0] > 2:
-            #    scoring = self.AUC
-            #   score = 'AUC'
-            # elif scoring == 'AUC':                #########################################
-            #   score = 'AUC'     ##########################################
-            #  scoring = 'roc_auc' #########################################
 
             for item in clfs:
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(X_tr[0:n]), np.ravel(Y_tr[0:n]),
@@ -146,7 +151,7 @@ class BestEstimator(object):
                 Score_mean = Score.mean()
                 STD2 = Score.std() * 2
 
-                clfs[item]['score'] = Score  # roc_auc
+                clfs[item]['score'] = Score
                 clfs[item]['mean'] = Score_mean
                 clfs[item]['std2'] = STD2
 
@@ -154,8 +159,6 @@ class BestEstimator(object):
                                                                      clfs[item]['score'].std() * 2)))
 
             Best_clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
-
-
 
         elif self.type_esti == 'Regressor':
 
@@ -173,7 +176,7 @@ class BestEstimator(object):
             clfs['SVM'] = {'clf': SVR(gamma='auto'), 'name': 'SVM'}
 
             for item in clfs:
-                # print(Y_tr[0:30])
+
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(X_tr[0:n]), np.array(np.ravel(Y_tr[0:n])),
                                         cv=self.cv, scoring=scoring)
                 Score_mean = Score.mean()
@@ -189,10 +192,6 @@ class BestEstimator(object):
             Best_clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
 
         if self.grid:
-            # print('grid = True')
-
-
-
             if self.hard_grid == False:
 
                 if Best_clf == 'Extra Tree':
@@ -226,7 +225,6 @@ class BestEstimator(object):
 
 
                 elif Best_clf == 'Random Forest':
-                    #  print('Best_clf = dt ou rf')
 
                     if self.type_esti == 'Regressor':
 
@@ -254,14 +252,12 @@ class BestEstimator(object):
 
 
                 elif Best_clf == 'XGBoost':
-                    # print('Best_clf = xgb')
 
                     params = {'eta': [.01, .1, .3],
                               'max_depth': [5, 10, 15],
                               'gamma': [0, .1, .01]}
 
                 elif Best_clf == 'Bagging':
-                    # print('best_clf = bag)')
 
                     params = {'n_estimators': [100, 300, 600]}
 
@@ -342,14 +338,12 @@ class BestEstimator(object):
 
 
                 elif Best_clf == 'XGBoost':
-                    # print('Best_clf = xgb')
 
                     params = {'eta': [0.001, .01, .1, .3, 1],
                               'max_depth': [5, 10, 15, 20, 25],
                               'gamma': [0, .1, .01, .001]}
 
                 elif Best_clf == 'Bagging':
-                    # print('best_clf = bag)')
 
                     params = {'n_estimators': [100, 300, 600, 1000, 1200, 1500]}
 
@@ -409,7 +403,6 @@ class BestEstimator(object):
         :param Data: the dataset to transform
         :param value: value for fill missing values
         :param ID: name of the ID column
-        :return:
         """
 
         Test = Data.copy()
@@ -441,9 +434,22 @@ class BestEstimator(object):
 
     def custom_grid(self, Train, Target, ID='ID', target_ID=True,
                     n=1000, metric='AUC', params=None, cv=3, DF=None, value=0):
+        """
+        Perform a GridSearchCV with a custom set of hyperparametres and custom estimator
+
+        :param Train: training dataset
+        :param Target: target dataset
+        :param ID: ID column of the train
+        :param target_ID: if True, drop the target ID column
+        :param n: size of the sample
+        :param metric: loss function used for evaluate perfomance
+        :param params: set of hyperparametres
+        :param cv: fold number for cross validation
+        :param DF: estimator used, if None use the best one found in fit method
+        :param value: value for missing values
+        """
 
         target = Target.copy()
-        loss = metric
 
         for i in target.columns:
             if target[i].dtype == object:
@@ -458,10 +464,6 @@ class BestEstimator(object):
         if DF == None:
             DF = self.Decision_Function
 
-        # if metric == 'AUC':
-        #   metric = self.AUC
-        #  loss = 'AUC'
-
         gr = GridSearchCV(DF, param_grid=params, cv=cv, scoring=metric, n_jobs=-1,
                           verbose=1, refit=True, iid=True);
 
@@ -469,7 +471,7 @@ class BestEstimator(object):
 
         print('\n Best hyperparametres : {}'.format(gr.best_params_))
 
-        print('\n Giving this {} score : {}'.format(loss, gr.best_score_))
+        print('\n Giving this {} score : {}'.format(metric, gr.best_score_))
 
 
 
@@ -505,12 +507,17 @@ class BestEstimator(object):
 
     def pred_grid(self, Test, ID='ID', value=0):
 
+        """
+        Predict a target from a dataset using the best hyperparamatres of the GridsSearchCV in fit method.
+
+        :param Test: The dataset to predict
+        :param ID: ID column of the test dataset
+        :param value: value for fill missing values
+        """
+
         pred = pd.DataFrame()
 
-        if ID == None:
-            test = self.Transform(Test, ID=None, value=value)
-        else:
-            test = self.Transform(Test, ID=ID, value=value)
+        test = self.Transform(Test, ID=ID, value=value)
 
         if self.type_esti == 'Classifier':
             predict = self.le.inverse_transform(self.gr.predict(test))
@@ -527,7 +534,38 @@ class BestEstimator(object):
 
 
 
+
+    # def pred_grid_proba(self, Test, ID = 'ID', value = 0):
+    #
+    #     pred = pd.DataFrame()
+    #     test = self.Transform(Test, ID = ID, value = value)
+    #
+    #     print(self.lab)
+    #     print(self.le.inverse_transform(self.gr.classes_))
+    #
+    #     if ID == None:
+    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
+    #     else:
+    #         #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
+    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
+    #         print(pred)
+    #         pred.insert(loc=0, column=ID, value=Test[ID])
+    #     return (pred)
+
+
+
+
     def pred(self, Test, ID=None, value=0, n=1000, refit = False):
+        """
+        Predict a target from a dataset using the best estimator from fit method without using the GridSearchCV prediction
+
+        :param Test: Dataset to predict
+        :param ID: ID column
+        :param value: Value for fill missing values
+        :param n: sample number for fitting
+        :param refit: iif True, refit on the n sample else, use the first fit model
+        :return:
+        """
 
         test = self.Transform(Test, ID=ID, value=value)
         pred = pd.DataFrame()
@@ -539,13 +577,10 @@ class BestEstimator(object):
         if refit :
             self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
 
-        #self.estim = self.ReFit(self.Data[0:n], self.Target[0:n], ID=None, value=value, target_ID=False)
 
         if self.type_esti == 'Classifier':
-            #predict = self.le.inverse_transform(self.Decision_Function.predict(test))
             predict = self.le.inverse_transform(self.estim.predict(test))
         else:
-           # predict = self.Decision_Function.predict(test)
             predict = self.estim.predict(test)
 
         if ID == None:
@@ -554,7 +589,7 @@ class BestEstimator(object):
             pred[ID] = Test[ID]
             pred['Target'] = predict
 
-        return (pred)
+        return(pred)
 
 
 
