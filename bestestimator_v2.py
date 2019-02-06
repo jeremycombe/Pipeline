@@ -514,7 +514,7 @@ class BestEstimator(object):
             esti = BaggingRegressor(base_estimator = Best_DF)
 
 
-        DF =  GridSearchCV(estimator = esti, param_grid = params, n_jobs = -1, verbose = 1, cv = cv)
+        DF =  GridSearchCV(estimator = esti, param_grid = params, n_jobs = -1, verbose = 1, cv = cv, scoring = metric)
 
         DF.fit(train[0:n], np.ravel(target[0:n]))
 
