@@ -487,6 +487,19 @@ class BestEstimator(object):
 
     def Bagg_fit(self, Train, Target, n_estimators = None, type_esti = 'Classifier', n = 1000,
                  cv = 3, value = 0, ID = None, metric = None):
+        """
+        Use a Bagging algorithm on the best estimator found in fit method
+
+        :param Train: Training dataset
+        :param Target: Target dataset
+        :param n_estimators: List of estimators to check
+        :param type_esti: Regressor or Classifier
+        :param n: number of sample to use
+        :param cv: folds number to use in GridSearchCV
+        :param value: value for filling missing values
+        :param ID: ID column
+        :param metric: loss score
+        """
 
         params = {'n_estimators' : n_estimators}
 
@@ -605,6 +618,12 @@ class BestEstimator(object):
 
 
     def best_size(self, n, metric = 'accuracy'):
+
+        """
+        Check the best sample size to check the overfitting issues
+        :param n: list of size
+        :param metric: loss score
+        """
 
         X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
         sc = 0
