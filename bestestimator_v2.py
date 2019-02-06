@@ -617,7 +617,7 @@ class BestEstimator(object):
 
 
 
-    def best_size(self, n, metric = 'accuracy'):
+    def best_size(self, n, metric = 'accuracy_score'):
 
         """
         Check the best sample size to check the overfitting issues
