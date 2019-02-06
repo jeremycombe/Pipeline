@@ -20,14 +20,6 @@ from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import roc_auc_score
 
 
-def multiclass_roc_auc_score(y_test, y_pred, average="macro"):
-    lb = LabelBinarizer()
-    lb.fit(y_test)
-    y_test = lb.transform(y_test)
-    y_pred = lb.transform(y_pred)
-    return (roc_auc_score(y_test, y_pred, average=average))
-
-
 class BestEstimator(object):
 
     def __init__(self,
@@ -411,7 +403,7 @@ class BestEstimator(object):
     def Transform(self, Data, value=0, ID='ID'):
 
         """
-        Transform all object features of a dataset in numeric features,
+        Transform all object features of a dataset in numeric ones,
         drop the ID column (None if non present) and fill the missing values.
 
         :param Data: the dataset to transform
@@ -498,7 +490,7 @@ class BestEstimator(object):
             esti = BaggingRegressor(base_estimator = Best_DF)
 
 
-        DF =  GridSearchCV(estimator = esti, param_grid = params, n_jobs = -1, verbose = 1)
+        DF =  GridSearchCV(estimator = esti, param_grid = params, n_jobs = -1, verbose = 1, cv = cv)
 
         DF.fit(train[0:n], np.ravel(target[0:n]))
 
@@ -509,9 +501,9 @@ class BestEstimator(object):
         if self.gr.best_score_ < DF.best_score_:
             self.Decision_Function = DF.best_estimator_
 
-        #print(self.Decision_Function)
 
-    def pred_grid2(self, Test, ID='ID', value=0):
+
+    def pred_grid(self, Test, ID='ID', value=0):
 
         pred = pd.DataFrame()
 
@@ -535,7 +527,7 @@ class BestEstimator(object):
 
 
 
-    def pred2(self, Test, ID=None, value=0, n=1000, refit = False):
+    def pred(self, Test, ID=None, value=0, n=1000, refit = False):
 
         test = self.Transform(Test, ID=ID, value=value)
         pred = pd.DataFrame()
@@ -561,19 +553,6 @@ class BestEstimator(object):
         else:
             pred[ID] = Test[ID]
             pred['Target'] = predict
-
-        # else:
-        #
-        #     if self.type_esti == 'Classifier':
-        #         predict = self.le.inverse_transform(self.estim.predict(test))
-        #     else:
-        #         predict = self.estim.predict(test)
-        #
-        #     if ID == None:
-        #         pred['Target'] = predict
-        #     else:
-        #         pred[ID] = Test[ID]
-        #         pred['Target'] = predict
 
         return (pred)
 
