@@ -18,6 +18,15 @@ from sklearn.metrics import make_scorer
 from sklearn.preprocessing import LabelBinarizer
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import roc_auc_score
+import importlib
+
+
+def class_for_name(module_name, class_name):
+    # load the module, will raise ImportError if module cannot be loaded
+    m = importlib.import_module(module_name)
+    # get the class, will raise AttributeError if class cannot be found
+    c = getattr(m, class_name)
+    return c
 
 
 class BestEstimator(object):
@@ -571,8 +580,10 @@ class BestEstimator(object):
         pred = pd.DataFrame()
 
 
-        if self.estim == None:
-            self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
+        #if self.estim == None:
+         #   self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
+
+        self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
 
         if refit :
             self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
@@ -593,4 +604,21 @@ class BestEstimator(object):
 
 
 
+    def best_size(self, n, metric = 'accuracy'):
 
+        X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
+        sc = 0
+        size = 0
+
+        for i in n:
+            print('Fitting on {} data...'.format(i))
+            self.Decision_Function.fit(X_tr[0:i],np.ravel(Y_tr[0:i]))
+            pred = self.Decision_Function.predict(X_te)
+            score = class_for_name('sklearn.metrics',metric)(np.ravel(Y_te), np.ravel(pred))
+            print('{} datas -> {} = {} \n'.format(i, metric, score))
+            if sc < score:
+                sc = score
+                size = i
+
+        print('\n In the end, the best data size is {} \n'.format(size))
+        print(' With this {} : {}'.format(metric, sc))
