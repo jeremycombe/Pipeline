@@ -542,7 +542,10 @@ class BestEstimator(object):
         test = self.Transform(Test, ID=ID, value=value)
 
         if self.type_esti == 'Classifier':
-            predict = self.le.inverse_transform(self.gr.predict(test))
+            if self.lab_num:
+                predict = self.gr.predict(test)
+            else:
+                predict = self.le.inverse_transform(self.gr.predict(test))
         else:
             predict = self.gr.predict(test)
 
@@ -553,27 +556,6 @@ class BestEstimator(object):
             pred['Target'] = predict
 
         return (pred)
-
-
-
-
-    # def pred_grid_proba(self, Test, ID = 'ID', value = 0):
-    #
-    #     pred = pd.DataFrame()
-    #     test = self.Transform(Test, ID = ID, value = value)
-    #
-    #     print(self.lab)
-    #     print(self.le.inverse_transform(self.gr.classes_))
-    #
-    #     if ID == None:
-    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
-    #     else:
-    #         #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
-    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
-    #         print(pred)
-    #         pred.insert(loc=0, column=ID, value=Test[ID])
-    #     return (pred)
-
 
 
 
@@ -592,10 +574,6 @@ class BestEstimator(object):
         test = self.Transform(Test, ID=ID, value=value)
         pred = pd.DataFrame()
 
-
-        #if self.estim == None:
-         #   self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
-
         self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
 
         if refit :
@@ -603,7 +581,10 @@ class BestEstimator(object):
 
 
         if self.type_esti == 'Classifier':
-            predict = self.le.inverse_transform(self.estim.predict(test))
+            if self.lab_num:
+                predict = self.gr.predict(test)
+            else:
+                predict = self.le.inverse_transform(self.estim.predict(test))
         else:
             predict = self.estim.predict(test)
 
@@ -617,7 +598,7 @@ class BestEstimator(object):
 
 
 
-    def best_size(self, n, metric = 'accuracy_score'):
+    def best_size(self, n, metric = 'accuracy_score', type_esti = 'Classifier'):
 
         """
         Check the best sample size to check the overfitting issues
@@ -625,9 +606,16 @@ class BestEstimator(object):
         :param metric: loss score
         """
 
-        X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1 / 3)
-        sc = 0
+        X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1/3)
+        sc_reg = 0
+        sc_cla = 0
         size = 0
+
+        if type_esti == 'Regressor':
+            self.Decision_Function.fit(X_tr[0:n[0]], np.ravel(Y_tr[0:n[0]]))
+            pred = self.Decision_Function.predict(X_te)
+            sc_reg = class_for_name('sklearn.metrics', metric)(np.ravel(Y_te), np.ravel(pred))
+            n=n[1:]
 
         for i in n:
             print('Fitting on {} data...'.format(i))
@@ -635,9 +623,42 @@ class BestEstimator(object):
             pred = self.Decision_Function.predict(X_te)
             score = class_for_name('sklearn.metrics',metric)(np.ravel(Y_te), np.ravel(pred))
             print('{} datas -> {} = {} \n'.format(i, metric, score))
-            if sc < score:
-                sc = score
-                size = i
+
+            if type_esti  == 'Classifier':
+                if sc_cla < score:
+                    sc_cla = score
+                    size = i
+            else:
+                if sc_reg > score:
+                    sc_reg = score
+                    size = i
+
+        if type_esti == 'Regressor':
+            s = sc_reg
+        else:
+            s = sc_cla
 
         print('\n In the end, the best data size is {} \n'.format(size))
-        print(' With this {} : {}'.format(metric, sc))
+        print(' With this {} : {}'.format(metric, s))
+        #print(self.Decision_Function)
+
+
+    #def pred_grid_proba(self,):
+
+    # def pred_grid_proba(self, Test, ID = 'ID', value = 0):
+    #
+    #     pred = pd.DataFrame()
+    #     test = self.Transform(Test, ID = ID, value = value)
+    #
+    #     print(self.lab)
+    #     print(self.le.inverse_transform(self.gr.classes_))
+    #
+    #     if ID == None:
+    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
+    #     else:
+    #         #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
+    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
+    #         print(pred)
+    #         pred.insert(loc=0, column=ID, value=Test[ID])
+    #     return (pred)
+
