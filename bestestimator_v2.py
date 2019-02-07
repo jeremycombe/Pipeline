@@ -602,6 +602,7 @@ class BestEstimator(object):
 
         """
         Check the best sample size to check the overfitting issues
+
         :param n: list of size
         :param metric: loss score
         """
@@ -643,22 +644,64 @@ class BestEstimator(object):
         #print(self.Decision_Function)
 
 
-    #def pred_grid_proba(self,):
+    def pred_grid_proba(self, Test, ID_Test = 'ID', ID_pred = True, value = 0):
+        """
+        Predict classes probabilities from Test
 
-    # def pred_grid_proba(self, Test, ID = 'ID', value = 0):
-    #
-    #     pred = pd.DataFrame()
-    #     test = self.Transform(Test, ID = ID, value = value)
-    #
-    #     print(self.lab)
-    #     print(self.le.inverse_transform(self.gr.classes_))
-    #
-    #     if ID == None:
-    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
-    #     else:
-    #         #pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
-    #         pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.lab)
-    #         print(pred)
-    #         pred.insert(loc=0, column=ID, value=Test[ID])
-    #     return (pred)
+        :param Test: Dataset to predict
+        :param ID_Test: The ID column of the Test dataset
+        :param ID_pred: If True, add an ID column to the prediction
+        :param value: Value for filling missing values in the Test
+        """
 
+        test = self.Transform(Test, ID = ID_Test, value = value)
+        #pred = pd.DataFrame()
+
+        if self.lab_num:
+            pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.gr.classes_)
+            if ID_pred:
+                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+        else:
+            pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
+            if ID_pred:
+                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+
+        return(pred)
+
+
+    def pred_proba(self, Test, ID_Test = 'ID', ID_pred = True, value = 0, n = 1000, refit = True):
+
+        """
+        Predict classes probabilities with the refit best estimator found in fit method
+        :param Test: Dataset ti predict
+        :param ID_Test: ID column of the Test
+        :param ID_pred: if True, add an ID column to the prediction
+        :param value: value for filling missing values
+        :param n: size of the dataset for the new fit
+        :param refit: if True, refit at every method launch
+        """
+
+        test = self.Transform(Test, ID = ID_Test, value = value)
+
+        if self.estim == None:
+            self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
+
+        if refit:
+            self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
+
+
+        if self.lab_num:
+            pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
+            if ID_pred:
+                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+        else:
+            pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.le.inverse_transform(self.estim.classes_))
+            if ID_pred:
+                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+
+        return(pred)
+
+
+
+
+    
