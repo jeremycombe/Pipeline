@@ -75,8 +75,8 @@ class BestEstimator(object):
             scoring='roc_auc'):
 
         """
-        Fit all Machine Learning algorithms on a train and target dataset then,
-        search the best hyperparametres of the best algorithm and return them with the loss score
+        Fit all Machine Learning algorithms on a train and target dataset, afterward
+        search for the best hyperparametres of the best algorithm and return them with the loss score.
 
         :param data: training dataset
         :param target: target dataset
@@ -119,9 +119,9 @@ class BestEstimator(object):
             self.Data.fillna('ffill', inplace=True)
 
         if self.Data.isnull().any().any() == False:
-            print('NaN data filled by {} \n'.format(value))
+            print('Missing values filled by {} \n'.format(value))
         else:
-            print('Fail to fill NaN data')
+            print('Fail to fill missing values')
 
         for i in self.Data.columns:  ###########
 
@@ -443,11 +443,11 @@ class BestEstimator(object):
     def Transform(self, Data, value=0, ID='ID'):
 
         """
-        Transform all object features of a dataset in numeric ones,
+        Transform all object features of a dataset into numeric ones,
         drop the ID column (None if non present) and fill the missing values.
 
         :param Data: the dataset to transform
-        :param value: value for fill missing values
+        :param value: value for filling missing values
         :param ID: name of the ID column
         """
 
@@ -579,11 +579,11 @@ class BestEstimator(object):
     def pred_grid(self, Test, ID='ID', value=0):
 
         """
-        Predict a target from a dataset using the best hyperparamatres of the GridsSearchCV in fit method.
+        Predict a target from a dataset using the best hyperparamatres of the GridsSearchCV found in fit method.
 
         :param Test: The dataset to predict
         :param ID: ID column of the test dataset
-        :param value: value for fill missing values
+        :param value: value for filling missing values
         """
 
         pred = pd.DataFrame()
@@ -610,13 +610,13 @@ class BestEstimator(object):
 
     def pred(self, Test, ID=None, value=0, n=1000, refit = False):
         """
-        Predict a target from a dataset using the best estimator from fit method without using the GridSearchCV prediction
+        Predict a target from a dataset using the best estimator from the fit method without using the GridSearchCV prediction
 
         :param Test: Dataset to predict
         :param ID: ID column
-        :param value: Value for fill missing values
+        :param value: Value for filling missing values
         :param n: sample number for fitting
-        :param refit: iif True, refit on the n sample else, use the first fit model
+        :param refit: if True, refit on the n sample else, use the first fit model
         :return:
         """
 
@@ -668,7 +668,7 @@ class BestEstimator(object):
             n=n[1:]
 
         for i in n:
-            print('Fitting on {} data...'.format(i))
+            print('Fitting {} datas...'.format(i))
             self.Decision_Function.fit(X_tr[0:i],np.ravel(Y_tr[0:i]))
             pred = self.Decision_Function.predict(X_te)
             score = class_for_name('sklearn.metrics',metric)(np.ravel(Y_te), np.ravel(pred))
@@ -695,7 +695,7 @@ class BestEstimator(object):
 
     def pred_grid_proba(self, Test, ID_Test = 'ID', ID_pred = True, value = 0):
         """
-        Predict classes probabilities from Test
+        Predict classes probabilities from Test dataset
 
         :param Test: Dataset to predict
         :param ID_Test: The ID column of the Test dataset
@@ -721,8 +721,9 @@ class BestEstimator(object):
     def pred_proba(self, Test, ID_Test = 'ID', ID_pred = True, value = 0, n = 1000, refit = True):
 
         """
-        Predict classes probabilities with the refit best estimator found in fit method
-        :param Test: Dataset ti predict
+        Predict classes probabilities with the refit best estimator found in the fit method
+
+        :param Test: Dataset to predict
         :param ID_Test: ID column of the Test
         :param ID_pred: if True, add an ID column to the prediction
         :param value: value for filling missing values
