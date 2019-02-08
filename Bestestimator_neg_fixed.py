@@ -29,9 +29,6 @@ def class_for_name(module_name, class_name):
     return c
 
 
-
-
-
 class BestEstimator(object):
 
     def __init__(self,
@@ -374,7 +371,7 @@ class BestEstimator(object):
 
                 elif Best_clf == 'XGBoost':
 
-                    if type_esti == 'Classifier':
+                    if self.type_esti == 'Classifier':
 
                         params = {'eta': [0.001, .01, .1, .3, 1],
                                   'max_depth': [5, 10, 15, 20, 25],
@@ -529,7 +526,7 @@ class BestEstimator(object):
 
 
 
-    def Bagg_fit(self, Train, Target, n_estimators = None, type_esti = 'Classifier', n = 1000,
+    def Bagg_fit(self, Train, Target, n_estimators = None, n = 1000,
                  cv = 3, value = 0, ID = None, metric = None):
         """
         Use a Bagging algorithm on the best estimator found in fit method
@@ -537,7 +534,6 @@ class BestEstimator(object):
         :param Train: Training dataset
         :param Target: Target dataset
         :param n_estimators: List of estimators to check
-        :param type_esti: Regressor or Classifier
         :param n: number of sample to use
         :param cv: folds number to use in GridSearchCV
         :param value: value for filling missing values
@@ -552,9 +548,9 @@ class BestEstimator(object):
 
         Best_DF = self.Decision_Function
 
-        if type_esti == 'Classifier':
+        if self.type_esti == 'Classifier':
             esti = BaggingClassifier(base_estimator = Best_DF)
-        elif type_esti == 'Regressor':
+        elif self.type_esti == 'Regressor':
             esti = BaggingRegressor(base_estimator = Best_DF)
 
 
@@ -576,7 +572,7 @@ class BestEstimator(object):
             if self.gr.best_score_ > DF.best_score_:
                 self.Decision_Function = DF.best_estimator_
 
-        print(self.Decision_Function)
+        #print(self.Decision_Function)
 
 
 
@@ -651,7 +647,7 @@ class BestEstimator(object):
 
 
 
-    def best_size(self, n, metric = 'accuracy_score', type_esti = 'Classifier'):
+    def best_size(self, n, metric = 'accuracy_score'):
 
         """
         Check the best sample size to check the overfitting issues
@@ -665,7 +661,7 @@ class BestEstimator(object):
         sc_cla = 0
         size = 0
 
-        if type_esti == 'Regressor':
+        if self.type_esti == 'Regressor':
             self.Decision_Function.fit(X_tr[0:n[0]], np.ravel(Y_tr[0:n[0]]))
             pred = self.Decision_Function.predict(X_te)
             sc_reg = class_for_name('sklearn.metrics', metric)(np.ravel(Y_te), np.ravel(pred))
@@ -678,7 +674,7 @@ class BestEstimator(object):
             score = class_for_name('sklearn.metrics',metric)(np.ravel(Y_te), np.ravel(pred))
             print('{} datas -> {} = {} \n'.format(i, metric, score))
 
-            if type_esti  == 'Classifier':
+            if self.type_esti  == 'Classifier':
                 if sc_cla < score:
                     sc_cla = score
                     size = i
@@ -687,7 +683,7 @@ class BestEstimator(object):
                     sc_reg = score
                     size = i
 
-        if type_esti == 'Regressor':
+        if self.type_esti == 'Regressor':
             s = sc_reg
         else:
             s = sc_cla
