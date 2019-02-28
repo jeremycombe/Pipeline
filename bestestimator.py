@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import operator
 
+import matplotlib.pyplot as plt
+#import matplotlib.pyplot.figure as fig
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, GradientBoostingRegressor, \
@@ -439,6 +441,27 @@ class BestEstimator(object):
 
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
+
+
+    def Feature_Importances(self, clf, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 'all'):
+
+        Data_transform = self.Transform(Train, value, ID)
+        Target_transform = self.Transform(Target, value, ID)
+
+        clf.fit(Data_transform[0:n], Target_transform[0:n])
+
+        feat_importances = pd.Series(clf.feature_importances_, index=Data_transform.columns)
+        plt.figure(figsize=figsize)
+        if nb_features == 'all':
+            feat_importances.nlargest(Data_transform.shape[1]).plot(kind='barh')
+        else:
+            feat_importances.nlargest(nb_features).plot(kind='barh')
+
+        plt.title("Feature Importances")
+        plt.xlabel("Importance")
+        plt.ylabel("Features")
+        plt.show()
+
 
 
 
