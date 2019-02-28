@@ -155,7 +155,7 @@ class BestEstimator(object):
 
             clfs = {}
             clfs['Bagging'] = {'clf': BaggingClassifier(), 'name': 'Bagging'}
-            clfs['Gradient Boosting'] = {'clf': GradientBoostingClassifier(), 'name': 'Gradient Boosting'}
+            clfs['Gradient Boosting'] = {'clf': GradientBoostingClassifier(random_state = 0), 'name': 'Gradient Boosting'}
             clfs['XGBoost'] = {'clf': XGBClassifier(), 'name': 'XGBoost'}
             clfs['Random Forest'] = {'clf': RandomForestClassifier(n_estimators=100, n_jobs=-1),
                                      'name': 'Random Forest'}
@@ -304,10 +304,8 @@ class BestEstimator(object):
 
                 elif Best_clf == 'SVM':
 
-                    params = {'C': {1, .5, .1, 5},
+                    params = {'C': [1, .5, .1, 5],
                               'tol': [.01, .001, .1, .0001]}
-
-
 
             else:
 
@@ -396,7 +394,7 @@ class BestEstimator(object):
 
                 elif Best_clf == 'SVM':
 
-                    params = {'C': {1, .5, .1, 5, .01, .001},
+                    params = {'C': [1, .5, .1, 5, .01, .001],
                               'tol': [.01, .001, .1, .0001, 1],
                               'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
@@ -805,7 +803,4 @@ class BestEstimator(object):
                 pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
 
         return(pred)
-
-
-
 
