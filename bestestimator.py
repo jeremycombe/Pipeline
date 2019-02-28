@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import operator
-
+import seaborn as sns
 import matplotlib.pyplot as plt
 #import matplotlib.pyplot.figure as fig
 from sklearn.model_selection import GridSearchCV
@@ -463,6 +463,19 @@ class BestEstimator(object):
         plt.show()
 
 
+
+
+    def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000):
+
+        Data_transform = self.Transform(Train[0:n], value, ID)
+        Target_transform = self.Transform(Target[0:n], value, ID)
+
+        Data_transform['Target'] = Target_transform
+
+        corrmat = Data_transform.corr()
+        top_corr_features = corrmat.index
+        plt.figure(figsize=figsize)
+        sns.heatmap(Data_transform[top_corr_features].corr(), annot=True, cmap="RdYlGn")
 
 
     def Transform(self, Data, value=0, ID='ID'):
