@@ -464,6 +464,37 @@ class BestEstimator(object):
 
 
 
+    def get_corr(self, Data, Target, ID = 'ID', value = 0, n_pairs = 5):
+
+        Data_tr = self.Transform(Data, ID = ID, value = value)
+        Target_tr = self.Transform(Target, ID = ID, value= value)
+
+        Data_tr['Taget'] = Target_tr
+
+        df = pd.DataFrame()
+
+        feature1 = []
+        feature2 = []
+        corr = []
+
+        for i in Data_tr.columns:
+            for j in Data_tr.columns:
+                feature1.append(i)
+                feature2.append(j)
+                corr.append(np.abs(pearsonr(Data_tr[i], Data_tr[j])[0]))
+
+        df['feature_1'] = feature1
+        df['feature_2'] = feature2
+        df['correlation_abs'] = corr
+
+        df.sort_values(by=['correlation_abs'], ascending=False, inplace=True)
+        df.drop_duplicates(subset='correlation_abs', inplace=True)
+        df.drop(0, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        return (df[0:n_pairs])
+
+
 
     def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000):
 
