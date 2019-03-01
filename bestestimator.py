@@ -18,6 +18,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import make_scorer
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.feature_selection import SelectKBest, chi2, f_classif, mutual_info_classif, SelectFpr, SelectFwe,\
+    f_regression, mutual_info_regression, SelectFdr, SelectPercentile, SelectFwe
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import roc_auc_score
 import importlib
@@ -443,7 +445,7 @@ class BestEstimator(object):
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
 
 
-    def Feature_Importances(self, clf, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 'all'):
+    def Feature_Importances_Tree(self, clf, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 'all'):
 
         Data_transform = self.Transform(Train, value, ID)
         Target_transform = self.Transform(Target, value, ID)
@@ -461,6 +463,32 @@ class BestEstimator(object):
         plt.xlabel("Importance")
         plt.ylabel("Features")
         plt.show()
+
+
+    def Feature_Importances_Test(self, Train, Target, ID = 'ID', value = 0, n = 1000, nb_features = 'all', test_used = f_classif):
+
+        Train_Transform = self.Transform(Train, ID = ID, value = value)
+        Target_Transform = self.Transform(Target, ID = ID, value = value)
+
+
+        featureScores = pd.DataFrame()
+        featureScores['Features'] = Train_Transform.columns
+
+        for i in test_used :
+
+            Test = SelectKBest(score_func= i, k=nb_features)
+            Test.fit(Train_Transform[0:n], Target_Transform[0:n])
+
+            featureScores[i.__name__] = Test.scores_
+
+        if len(test_used) > 1:
+            featureScores['Mean'] = featureScores.mean(axis = 1)
+            featureScores.sort_values(by=['Mean'], ascending=False, inplace=True)
+        else :
+            featureScores.sort_values(by=[i.__name__], ascending=False, inplace=True)
+
+
+        return(featureScores)
 
 
 
