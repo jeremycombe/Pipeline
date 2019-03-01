@@ -492,21 +492,55 @@ class BestEstimator(object):
         df.drop(0, inplace=True)
         df.reset_index(drop=True, inplace=True)
 
+
         return (df[0:n_pairs])
 
 
 
-    def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000):
+    def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000, n_pairs = 5):
 
-        Data_transform = self.Transform(Train[0:n], value, ID)
-        Target_transform = self.Transform(Target[0:n], value, ID)
+        if n_pairs != None :
 
-        Data_transform['Target'] = Target_transform
+            DF = self.get_corr(Train, Target, ID = ID, value = value, n_pairs = n_pairs)
 
-        corrmat = Data_transform.corr()
-        top_corr_features = corrmat.index
-        plt.figure(figsize=figsize)
-        sns.heatmap(Data_transform[top_corr_features].corr(), annot=True, cmap="RdYlGn")
+            Target_transform = self.Transform(Target[0:n], value, ID)
+
+            Feature_1 = np.array(DF['feature_1'])
+            Feature_2 = np.array(DF['feature_2'])
+            target =  Target_transform.columns
+
+            Features = np.unique(np.r_[Feature_1, Feature_2, target])
+
+
+            Data_transform = self.Transform(Train[0:n], value, ID)
+
+
+            Data_transform[target] = Target_transform
+
+            corrmat = Data_transform[Features].corr()
+            top_corr_features = corrmat.index
+            plt.figure(figsize=figsize)
+            sns.heatmap(Data_transform[top_corr_features].corr(), annot=True, cmap="RdYlGn")
+
+        else :
+
+            Target_transform = self.Transform(Target[0:n], value, ID)
+            Data_transform = self.Transform(Train[0:n], value, ID)
+
+            Feature = Data_transform.columns
+            target = Target_transform.columns
+
+            Data_transform[target] = Target_transform[target]
+
+            #Features = np.r_[Feature, target]
+
+            #Data_transform[target] = Target_transform
+
+            corrmat = Data_transform.corr()
+            top_corr_features = corrmat.index
+            plt.figure(figsize=figsize)
+            sns.heatmap(Data_transform[top_corr_features].corr(), annot=True, cmap="RdYlGn")
+
 
 
     def Transform(self, Data, value=0, ID='ID'):
