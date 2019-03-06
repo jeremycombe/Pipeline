@@ -442,16 +442,17 @@ class BestEstimator(object):
             if self.lab_num == None:
                 self.lab = self.le.inverse_transform(self.gr.classes_)
 
-
-
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
 
 
-    def Feature_Importances_Tree(self, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 'all'):
+
+    def Feature_Importances_Tree(self, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 15):
 
         Data_transform = self.Transform(Train, value, ID)
         Target_transform = self.Transform(Target, value, ID)
+
+        feat_importances = pd.DataFrame()
 
         if self.type_esti == 'Classifier' :
             clf = ExtraTreesClassifier()
@@ -461,20 +462,16 @@ class BestEstimator(object):
 
         clf.fit(Data_transform[0:n], np.ravel(Target_transform[0:n]))
 
-        feat_importances = pd.Series(clf.feature_importances_, index=Data_transform.columns)
-        plt.figure(figsize=figsize)
-        if nb_features == 'all':
-            feat_importances.nlargest(Data_transform.shape[1]).plot(kind='barh')
-        else:
-            feat_importances.nlargest(nb_features).plot(kind='barh')
+        feat_importances['features'] = Data_transform.columns[0:nb_features]
+        feat_importances['Score'] = clf.feature_importances_[0:nb_features]
+        feat_importances.sort_values(by=['Score'], ascending=False, inplace=True)
 
-        plt.title("Feature Importances")
-        plt.xlabel("Importance")
-        plt.ylabel("Features")
-        plt.show()
+        sns.set(font_scale=2)
+        plt.subplots(figsize=figsize)
+        sns.barplot(x="Score", y="features", data=feat_importances)
 
 
-    def Feature_Importances_Test(self, Train, Target, ID='ID', value=0, n=1000, nb_features='all',
+    def Feature_Importances_Test(self, Train, Target, ID='ID', value=0, n=1000, nb_features=15,
                                  test_used = f_classif):
 
         Train_Transform = self.Transform(Train, ID=ID, value=value)
@@ -493,11 +490,11 @@ class BestEstimator(object):
         featureScores.reset_index(drop=True, inplace=True)
 
 
-        return(featureScores)
+        return(featureScores[0:nb_features])
 
 
 
-    def get_highest_corr_target(self, Data, Target, ID='ID', value=0, n = 500):
+    def get_highest_corr_target(self, Data, Target, ID='ID', value=0, n = 500, nb_features = 15):
 
         Data_tr = self.Transform(Data, ID=ID, value=value)
         Target_tr = self.Transform(Target, ID=ID, value=value)
@@ -509,7 +506,7 @@ class BestEstimator(object):
 
         for i in Data_tr.columns:
 
-            corr.append(pearsonr(np.ravel(Target_tr[Target_tr.columns][0:n]),np.ravel(Data_tr[i][0:n]))[0])
+            corr.append(np.abs(pearsonr(np.ravel(Target_tr[Target_tr.columns][0:n]),np.ravel(Data_tr[i][0:n]))[0]))
 
         df['features'] = feature
         df['Target Correlation'] = corr
@@ -519,19 +516,14 @@ class BestEstimator(object):
         df.drop(0, inplace=True)
         df.reset_index(drop=True, inplace=True)
 
-        return(df)
+        return(df[0:nb_features])
 
 
 
 
-    def get_highest_corr(self, Data, Target, ID = 'ID', value = 0, n_pairs = 5, n = 500):
+    def get_highest_corr(self, Data, ID = 'ID', value = 0, n_pairs = 8, n = 500):
 
         Data_tr = self.Transform(Data, ID = ID, value = value)
-        Target_tr = self.Transform(Target, ID = ID, value= value)
-
-        name = Target_tr.columns
-
-        Data_tr[name] = Target_tr
 
         df = pd.DataFrame()
 
@@ -559,17 +551,17 @@ class BestEstimator(object):
 
 
 
-    def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000, n_pairs = 5):
+    def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000, n_pairs = 8):
 
         if n_pairs != None :
 
-            DF = self.get_highest_corr(Train, Target, ID = ID, value = value, n_pairs = n_pairs)
+            DF = self.get_highest_corr(Train, ID = ID, value = value, n_pairs = n_pairs)
 
             Target_transform = self.Transform(Target[0:n], value, ID)
 
             Feature_1 = np.array(DF['feature_1'])
             Feature_2 = np.array(DF['feature_2'])
-            target =  Target_transform.columns
+            target = Target_transform.columns
 
             Features = np.unique(np.r_[Feature_1, Feature_2, target])
 
@@ -589,7 +581,7 @@ class BestEstimator(object):
             Target_transform = self.Transform(Target[0:n], value, ID)
             Data_transform = self.Transform(Train[0:n], value, ID)
 
-            Feature = Data_transform.columns
+            #Feature = Data_transform.columns
             target = Target_transform.columns
 
             Data_transform[target] = Target_transform[target]
@@ -860,53 +852,6 @@ class BestEstimator(object):
         print('\n In the end, the best data size is {} \n'.format(size))
         print(' With this {} : {}'.format(metric, s))
         #print(self.Decision_Function)
-
-
-    # def best_size(self, n, metric = 'accuracy_score'):
-    #
-    #     """
-    #     Check the best sample size to check the overfitting issues
-    #
-    #     :param n: list of size
-    #     :param metric: loss score
-    #     """
-    #
-    #     X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1/3)
-    #     sc_reg = 0
-    #     sc_cla = 0
-    #     size = 0
-    #
-    #     if self.type_esti == 'Regressor':
-    #         self.Decision_Function.fit(X_tr[0:n[0]], np.ravel(Y_tr[0:n[0]]))
-    #         pred = self.Decision_Function.predict(X_te)
-    #         sc_reg = class_for_name('sklearn.metrics', metric)(np.ravel(Y_te), np.ravel(pred))
-    #         n=n[1:]
-    #
-    #     for i in n:
-    #         print('Fitting {} datas...'.format(i))
-    #         self.Decision_Function.fit(X_tr[0:i],np.ravel(Y_tr[0:i]))
-    #         pred = self.Decision_Function.predict(X_te)
-    #         score = class_for_name('sklearn.metrics',metric)(np.ravel(Y_te), np.ravel(pred))
-    #         print('{} datas -> {} = {} \n'.format(i, metric, score))
-    #
-    #         if self.type_esti  == 'Classifier':
-    #             if sc_cla < score:
-    #                 sc_cla = score
-    #                 size = i
-    #         else:
-    #             if sc_reg > score:
-    #                 sc_reg = score
-    #                 size = i
-    #
-    #     if self.type_esti == 'Regressor':
-    #         s = sc_reg
-    #     else:
-    #         s = sc_cla
-    #
-    #     print('\n In the end, the best data size is {} \n'.format(size))
-    #     print(' With this {} : {}'.format(metric, s))
-    #     #print(self.Decision_Function)
-
 
 
     def pred_grid_proba(self, Test, ID_Test = 'ID', ID_pred = True, value = 0):
