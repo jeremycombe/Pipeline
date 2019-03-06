@@ -448,10 +448,16 @@ class BestEstimator(object):
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
 
 
-    def Feature_Importances_Tree(self, clf, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 'all'):
+    def Feature_Importances_Tree(self, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 'all'):
 
         Data_transform = self.Transform(Train, value, ID)
         Target_transform = self.Transform(Target, value, ID)
+
+        if self.type_esti == 'Classifier' :
+            clf = ExtraTreesClassifier()
+        else:
+
+            clf = ExtraTreesRegressor()
 
         clf.fit(Data_transform[0:n], np.ravel(Target_transform[0:n]))
 
@@ -468,34 +474,7 @@ class BestEstimator(object):
         plt.show()
 
 
-
-
     def Feature_Importances_Test(self, Train, Target, ID='ID', value=0, n=1000, nb_features='all',
-                                 test_used=[f_classif, mutual_info_classif]):
-
-        Train_Transform = self.Transform(Train, ID=ID, value=value)
-        Target_Transform = self.Transform(Target, ID=ID, value=value)
-
-        featureScores = pd.DataFrame()
-        featureScores['Features'] = Train_Transform.columns
-
-        for i in test_used:
-            Test = SelectKBest(score_func=i, k=nb_features)
-            Test.fit(Train_Transform[0:n], np.ravel(Target_Transform[0:n]))
-
-            featureScores[i.__name__] = Test.scores_
-
-        if len(test_used) > 1:
-            featureScores['Mean'] = featureScores.mean(axis=1)
-            featureScores.sort_values(by=['Mean'], ascending=False, inplace=True)
-        else:
-            featureScores.sort_values(by=[i.__name__], ascending=False, inplace=True)
-
-
-        return(featureScores)
-
-
-    def Feature_Importances_Test_v2(self, Train, Target, ID='ID', value=0, n=1000, nb_features='all',
                                  test_used = f_classif):
 
         Train_Transform = self.Transform(Train, ID=ID, value=value)
@@ -518,43 +497,34 @@ class BestEstimator(object):
 
 
 
-    def Feature_Importances_Test_norm(self, Train, Target, ID='ID', value=0, n=1000, nb_features='all',
-                                 test_used=[f_classif, mutual_info_classif]):
+    def get_highest_corr_target(self, Data, Target, ID='ID', value=0, n = 500):
 
-        Train_Transform = self.Transform(Train, ID=ID, value=value)
-        Target_Transform = self.Transform(Target, ID=ID, value=value)
+        Data_tr = self.Transform(Data, ID=ID, value=value)
+        Target_tr = self.Transform(Target, ID=ID, value=value)
 
-        featureScores = pd.DataFrame()
-        featureScores['Features'] = Train_Transform.columns
+        df = pd.DataFrame()
 
-        for i in test_used:
-            Test = SelectKBest(score_func=i, k=nb_features)
-            Test.fit(Train_Transform[0:n], np.ravel(Target_Transform[0:n]))
+        corr = []
+        feature = Data_tr.columns
 
-            featureScores[i.__name__] = np.abs(Test.scores_)
+        for i in Data_tr.columns:
 
-        if len(test_used) > 1:
+            corr.append(pearsonr(np.ravel(Target_tr[Target_tr.columns][0:n]),np.ravel(Data_tr[i][0:n]))[0])
 
-            for i in featureScores.columns :
-                if featureScores[i].dtype != object :
-                    m = featureScores[i].mean()
-                    s = featureScores[i].std()
+        df['features'] = feature
+        df['Target Correlation'] = corr
 
-                    featureScores[i] = (featureScores[i] - m)/s
+        df.sort_values(by=['Target Correlation'], ascending=False, inplace=True)
+        #df.drop_duplicates(subset='correlation_abs', inplace=True)
+        df.drop(0, inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
-            featureScores['Mean'] = featureScores.mean(axis=1)
-            featureScores.sort_values(by=['Mean'], ascending=False, inplace=True)
-        else:
-            featureScores.sort_values(by=[i.__name__], ascending=False, inplace=True)
-
-        featureScores.reset_index(drop=True, inplace=True)
-
-
-        return(featureScores)
+        return(df)
 
 
 
-    def get_highest_corr(self, Data, Target, ID = 'ID', value = 0, n_pairs = 5):
+
+    def get_highest_corr(self, Data, Target, ID = 'ID', value = 0, n_pairs = 5, n = 500):
 
         Data_tr = self.Transform(Data, ID = ID, value = value)
         Target_tr = self.Transform(Target, ID = ID, value= value)
@@ -573,7 +543,7 @@ class BestEstimator(object):
             for j in Data_tr.columns:
                 feature1.append(i)
                 feature2.append(j)
-                corr.append(np.abs(pearsonr(Data_tr[i], Data_tr[j])[0]))
+                corr.append(np.abs(pearsonr(Data_tr[i][0:n], Data_tr[j][0:n])[0]))
 
         df['feature_1'] = feature1
         df['feature_2'] = feature2
