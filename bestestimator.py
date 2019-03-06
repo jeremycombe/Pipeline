@@ -3,8 +3,10 @@ import numpy as np
 import operator
 import seaborn as sns
 import matplotlib.pyplot as plt
+#from preprocessing import scale
 #import matplotlib.pyplot.figure as fig
 from sklearn.model_selection import GridSearchCV
+from scipy.stats import pearsonr
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, GradientBoostingRegressor, \
     RandomForestRegressor
@@ -129,6 +131,7 @@ class BestEstimator(object):
         if self.Data.isnull().any().any() == False:
             print('Missing values filled by {} \n'.format(value))
         else:
+
             print('Fail to fill missing values')
 
         for i in self.Data.columns:  ###########
@@ -450,7 +453,7 @@ class BestEstimator(object):
         Data_transform = self.Transform(Train, value, ID)
         Target_transform = self.Transform(Target, value, ID)
 
-        clf.fit(Data_transform[0:n], Target_transform[0:n])
+        clf.fit(Data_transform[0:n], np.ravel(Target_transform[0:n]))
 
         feat_importances = pd.Series(clf.feature_importances_, index=Data_transform.columns)
         plt.figure(figsize=figsize)
@@ -465,39 +468,100 @@ class BestEstimator(object):
         plt.show()
 
 
-    def Feature_Importances_Test(self, Train, Target, ID = 'ID', value = 0, n = 1000, nb_features = 'all', test_used = f_classif):
 
-        Train_Transform = self.Transform(Train, ID = ID, value = value)
-        Target_Transform = self.Transform(Target, ID = ID, value = value)
 
+    def Feature_Importances_Test(self, Train, Target, ID='ID', value=0, n=1000, nb_features='all',
+                                 test_used=[f_classif, mutual_info_classif]):
+
+        Train_Transform = self.Transform(Train, ID=ID, value=value)
+        Target_Transform = self.Transform(Target, ID=ID, value=value)
 
         featureScores = pd.DataFrame()
         featureScores['Features'] = Train_Transform.columns
 
-        for i in test_used :
-
-            Test = SelectKBest(score_func= i, k=nb_features)
-            Test.fit(Train_Transform[0:n], Target_Transform[0:n])
+        for i in test_used:
+            Test = SelectKBest(score_func=i, k=nb_features)
+            Test.fit(Train_Transform[0:n], np.ravel(Target_Transform[0:n]))
 
             featureScores[i.__name__] = Test.scores_
 
         if len(test_used) > 1:
-            featureScores['Mean'] = featureScores.mean(axis = 1)
+            featureScores['Mean'] = featureScores.mean(axis=1)
             featureScores.sort_values(by=['Mean'], ascending=False, inplace=True)
-        else :
+        else:
             featureScores.sort_values(by=[i.__name__], ascending=False, inplace=True)
 
 
         return(featureScores)
 
 
+    def Feature_Importances_Test_v2(self, Train, Target, ID='ID', value=0, n=1000, nb_features='all',
+                                 test_used = f_classif):
 
-    def get_corr(self, Data, Target, ID = 'ID', value = 0, n_pairs = 5):
+        Train_Transform = self.Transform(Train, ID=ID, value=value)
+        Target_Transform = self.Transform(Target, ID=ID, value=value)
+
+        featureScores = pd.DataFrame()
+        featureScores['Features'] = Train_Transform.columns
+
+
+        Test = SelectKBest(score_func= test_used, k=nb_features)
+        Test.fit(Train_Transform[0:n], np.ravel(Target_Transform[0:n]))
+
+        featureScores[test_used.__name__] = Test.scores_
+
+        featureScores.sort_values(by=[test_used.__name__], ascending=False, inplace=True)
+        featureScores.reset_index(drop=True, inplace=True)
+
+
+        return(featureScores)
+
+
+
+    def Feature_Importances_Test_norm(self, Train, Target, ID='ID', value=0, n=1000, nb_features='all',
+                                 test_used=[f_classif, mutual_info_classif]):
+
+        Train_Transform = self.Transform(Train, ID=ID, value=value)
+        Target_Transform = self.Transform(Target, ID=ID, value=value)
+
+        featureScores = pd.DataFrame()
+        featureScores['Features'] = Train_Transform.columns
+
+        for i in test_used:
+            Test = SelectKBest(score_func=i, k=nb_features)
+            Test.fit(Train_Transform[0:n], np.ravel(Target_Transform[0:n]))
+
+            featureScores[i.__name__] = np.abs(Test.scores_)
+
+        if len(test_used) > 1:
+
+            for i in featureScores.columns :
+                if featureScores[i].dtype != object :
+                    m = featureScores[i].mean()
+                    s = featureScores[i].std()
+
+                    featureScores[i] = (featureScores[i] - m)/s
+
+            featureScores['Mean'] = featureScores.mean(axis=1)
+            featureScores.sort_values(by=['Mean'], ascending=False, inplace=True)
+        else:
+            featureScores.sort_values(by=[i.__name__], ascending=False, inplace=True)
+
+        featureScores.reset_index(drop=True, inplace=True)
+
+
+        return(featureScores)
+
+
+
+    def get_highest_corr(self, Data, Target, ID = 'ID', value = 0, n_pairs = 5):
 
         Data_tr = self.Transform(Data, ID = ID, value = value)
         Target_tr = self.Transform(Target, ID = ID, value= value)
 
-        Data_tr['Taget'] = Target_tr
+        name = Target_tr.columns
+
+        Data_tr[name] = Target_tr
 
         df = pd.DataFrame()
 
@@ -529,7 +593,7 @@ class BestEstimator(object):
 
         if n_pairs != None :
 
-            DF = self.get_corr(Train, Target, ID = ID, value = value, n_pairs = n_pairs)
+            DF = self.get_highest_corr(Train, Target, ID = ID, value = value, n_pairs = n_pairs)
 
             Target_transform = self.Transform(Target[0:n], value, ID)
 
