@@ -167,7 +167,7 @@ class BestEstimator(object):
             clfs['Random Forest'] = {'clf': RandomForestClassifier(n_estimators=100, n_jobs=-1),
                                      'name': 'Random Forest'}
             clfs['Decision Tree'] = {'clf': DecisionTreeClassifier(), 'name': 'Decision Tree'}
-            clfs['Extra Tree'] = {'clf': ExtraTreesClassifier(n_jobs=-1), 'name': 'Extra Tree'}
+            clfs['Extra Tree'] = {'clf': ExtraTreesClassifier(n_jobs=-1, n_estimators = 100), 'name': 'Extra Tree'}
             clfs['KNN'] = {'clf': KNeighborsClassifier(n_jobs=-1), 'name': 'KNN'}
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
 
@@ -447,6 +447,7 @@ class BestEstimator(object):
 
 
 
+
     def Feature_Importances_Tree(self, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 15):
 
         Data_transform = self.Transform(Train, value, ID)
@@ -573,6 +574,7 @@ class BestEstimator(object):
 
             corrmat = Data_transform[Features].corr()
             top_corr_features = corrmat.index
+            sns.set(font_scale=2)
             plt.figure(figsize=figsize)
             sns.heatmap(Data_transform[top_corr_features].corr(), annot=True, cmap="RdYlGn")
 

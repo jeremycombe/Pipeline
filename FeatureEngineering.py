@@ -1,3 +1,34 @@
+import pandas as pd
+import numpy as np
+import operator
+import seaborn as sns
+import matplotlib.pyplot as plt
+#from preprocessing import scale
+#import matplotlib.pyplot.figure as fig
+from sklearn.model_selection import GridSearchCV
+from scipy.stats import pearsonr
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, GradientBoostingRegressor, \
+    RandomForestRegressor
+from sklearn.svm import SVC, SVR
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import BaggingClassifier, BaggingRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import make_scorer
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.feature_selection import SelectKBest, chi2, f_classif, mutual_info_classif, SelectFpr, SelectFwe,\
+    f_regression, mutual_info_regression, SelectFdr, SelectPercentile, SelectFwe
+from xgboost import XGBClassifier, XGBRegressor
+from sklearn.metrics import roc_auc_score
+import importlib
+
+
+
+
 class FeatureEngineering(object):
 
     def __init__(self,
@@ -8,10 +39,24 @@ class FeatureEngineering(object):
         self.Dict = None
 
 
+    def Missing_Values(self, Data_base = True):
+
+        print("Missing Values :\n")
+
+        if Data_base :
+            Data = self.Data
+        else:
+            Data = self.Data_feat
+
+        total = Data.isnull().sum().sort_values(ascending=False)
+        percent = (Data.isnull().sum() / Data.isnull().count()).sort_values(ascending=False) * 100
+        missing_data = pd.concat([total, percent], axis=1, keys=['Total', '%'])
+        print("{} \n".format(missing_data[(percent > 0)]))
+
     def Unique(self, view = True, Data_base = True):
 
         self.Dict = {}
-        DF_unique = self.Data.copy()
+        #DF_unique = self.Data.copy()
         #DF_unique.fillna(0, inplace = True)
 
         if Data_base:
@@ -156,9 +201,6 @@ class FeatureEngineering(object):
     #     return(self.Data_feat)
 
 
-
-
-
     def OneHotEncoder(self, columns):
 
         self.Data_feat = pd.get_dummies(self.Data_feat, columns = columns)
@@ -199,3 +241,12 @@ class FeatureEngineering(object):
 
 
 
+    def Plot(self, feature1, feature2, Data_base = True, figsize = (20, 15), n = 1000):
+
+        if Data_base :
+            data = self.Data[0:n]
+        else:
+            data = self.Data_feat[0:n]
+        sns.set(font_scale=2)
+        plt.figure(figsize=figsize)
+        sns.lineplot(x = feature1, y = feature2, markers=True, dashes=False,data = data)
