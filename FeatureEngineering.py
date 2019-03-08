@@ -37,6 +37,7 @@ class FeatureEngineering(object):
         self.Data = Data
         self.Data_feat = Data.copy()
         self.Dict = None
+        self.Dict_count = None
 
 
     def Missing_Values(self, Data_base = True):
@@ -130,75 +131,35 @@ class FeatureEngineering(object):
         return(self.Data_feat)
 
 
-    # def Dict_dist(self):
-    #
-    #
-    #     if self.Dict is None:
-    #         self.Unique(view=False)
-    #
-    #     Dict_count = {} #self.Dict
-    #
-    #     #DF = self.Data_feat
-    #     n = self.Data_feat.shape[0]
-    #
-    #     for i in self.Dict.keys():
-    #         #print(i)
-    #         for j in self.Dict[i]:
-    #
-    #             T = []
-    #             T.append(self.Data_feat[i][self.Data_feat[i] == j].count())
-    #
-    #         Dict_count[i] = T
-    #
-    #
-    #     return(Dict_count)
-    #
-    #
-    #
-    #
-    #
-    # def To_numeric_quant(self, column = 'all'):
-    #
-    #
-    #     if self.Dict is None:
-    #         self.Unique(view=False)
-    #
-    #     #DF = self.Data_feat
-    #     n = self.Data_feat.shape[0]
-    #
-    #
-    #     if columns == 'all':
-    #
-    #         for i in self.Dict.keys():
-    #
-    #             T = [np.nan] * n
-    #
-    #             for j in range(len(self.Dict[i])):
-    #
-    #                 for k in range(n):
-    #                     if self.Data_feat[i].iloc[k] == self.Dict[i][j]:
-    #                         T[k] = self.Data_feat[i][self.Data_feat[i] == self.Dict[i][j]].count() / n
-    #             self.Data_feat[i] = T
-    #
-    #     else :
-    #
-    #         for i in columns:
-    #
-    #             for j in self.Dict.keys():
-    #
-    #                 if j == i :
-    #
-    #                    T = [np.nan] * n
-    #
-    #                    for k in range(len(self.Dict[j])):
-    #
-    #                        for l in range(n):
-    #
-    #                            if self.Data_feat[i].iloc[l] == self.Dict[j][k]:
-    #                                T[l] = self.Data_feat[i][self.Data_feat[i] == self.Dict[j][k]].count() / n
-    #                    self.Data_feat[i] = T
-    #
-    #     return(self.Data_feat)
+
+    def To_numeric_quant(self, columns = 'all'):
+
+        if self.Dict is None:
+            self.Unique(view = False)
+
+
+        if columns == 'all':
+
+            iteration = self.Dict.keys()
+
+        else:
+
+            iteration = columns
+
+        for i in iteration:
+            T = []
+            A = pd.DataFrame(self.Data[i].value_counts()).reset_index()
+            n = A.shape[0]
+
+            for j in range(n):
+                T.append(n - j)
+
+            for l in range(n):
+
+                self.Data_feat[i].replace(A['index'][l], T[l], inplace = True)
+
+        return(self.Data_feat)
+
 
 
     def OneHotEncoder(self, columns):
