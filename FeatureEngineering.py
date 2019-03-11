@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
+from decimal import *
 import operator
 import seaborn as sns
 import matplotlib.pyplot as plt
-#from preprocessing import scale
-#import matplotlib.pyplot.figure as fig
 from sklearn.model_selection import GridSearchCV
 from scipy.stats import pearsonr
 from sklearn.preprocessing import LabelEncoder
@@ -25,8 +24,7 @@ from sklearn.feature_selection import SelectKBest, chi2, f_classif, mutual_info_
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import roc_auc_score
 import importlib
-
-
+from scipy.stats import kstest
 
 
 class FeatureEngineering(object):
@@ -211,3 +209,21 @@ class FeatureEngineering(object):
         sns.set(font_scale=2)
         plt.figure(figsize=figsize)
         sns.lineplot(x = feature1, y = feature2, markers=True, dashes=False,data = data)
+
+
+    def feature_dist(self,feature ,Data_base = True, figsize = (20, 15), n = 300, bins = 100):
+
+        if Data_base:
+            data = self.Data
+        else :
+            data = self.Data_feat
+
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize = figsize)
+        #plt.figure(figsize=figsize)
+        sns.distplot(data[feature], bins = bins, ax = ax1)
+        sns.lineplot(y = data[feature][0:n], x = range(0,n), data = data[0:n], ax = ax2)
+
+
+
+

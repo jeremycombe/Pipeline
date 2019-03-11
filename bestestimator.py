@@ -3,8 +3,6 @@ import numpy as np
 import operator
 import seaborn as sns
 import matplotlib.pyplot as plt
-#from preprocessing import scale
-#import matplotlib.pyplot.figure as fig
 from sklearn.model_selection import GridSearchCV
 from scipy.stats import pearsonr
 from sklearn.preprocessing import LabelEncoder
@@ -412,13 +410,7 @@ class BestEstimator(object):
             else:
                 print('\n Searching for the best hyperparametres of {} on {} data among : \n'.format(Best_clf, n_grid))
             print('{} \n'.format(params))
-            # print('Starting GridSearchCV using {} Classifier with {} folds \n'.format(Best_clf, cv_grid))
 
-            # if self.neg_result:
-            #     print(True)
-            #     clf = clfs[min(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
-            # else:
-            #     clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
             #print(clf)                                                                                                                    ############
             self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring,
@@ -456,7 +448,7 @@ class BestEstimator(object):
         feat_importances = pd.DataFrame()
 
         if self.type_esti == 'Classifier' :
-            clf = ExtraTreesClassifier()
+            clf = ExtraTreesClassifier(n_estimators = 100)
         else:
 
             clf = ExtraTreesRegressor()
