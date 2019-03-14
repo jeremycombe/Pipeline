@@ -110,27 +110,30 @@ class BestEstimator(object):
             self.Target.drop([ID], axis=1, inplace=True)
 
         if view_nan:
-            print("Missing Values :\n")
 
-            total = self.Data.isnull().sum().sort_values(ascending=False)
-            percent = (self.Data.isnull().sum() / self.Data.isnull().count()).sort_values(ascending=False) * 100
-            missing_data = pd.concat([total, percent], axis=1, keys=['Total', '%'])
-            print("{} \n".format(missing_data[(percent > 0)]))
+            if self.Data.isnull().values.any():
 
-        if type(value) == int:
-            self.Data.fillna(value, inplace=True)
+                print("Missing Values :\n")
 
-        elif value == 'bfill':
-            self.Data.fillna('bfill', inplace=True)
+                total = self.Data.isnull().sum().sort_values(ascending=False)
+                percent = (self.Data.isnull().sum() / self.Data.isnull().count()).sort_values(ascending=False) * 100
+                missing_data = pd.concat([total, percent], axis=1, keys=['Total', '%'])
+                print("{} \n".format(missing_data[(percent > 0)]))
 
-        elif value == 'ffill':
-            self.Data.fillna('ffill', inplace=True)
+                if type(value) == int:
+                    self.Data.fillna(value, inplace=True)
 
-        if self.Data.isnull().any().any() == False:
-            print('Missing values filled by {} \n'.format(value))
-        else:
+                elif value == 'bfill':
+                    self.Data.fillna('bfill', inplace=True)
 
-            print('Fail to fill missing values')
+                elif value == 'ffill':
+                    self.Data.fillna('ffill', inplace=True)
+
+                if self.Data.isnull().any().any() == False:
+                    print('Missing values filled by {} \n'.format(value))
+                else:
+
+                    print('Fail to fill missing values')
 
         for i in self.Data.columns:  ###########
 
@@ -848,32 +851,32 @@ class BestEstimator(object):
         #print(self.Decision_Function)
 
 
-    def pred_grid_proba(self, Test, ID_Test = 'ID', ID_pred = True, value = 0):
+    def pred_grid_proba(self, Test, ID = 'ID', value = 0):
         """
         Predict classes probabilities from Test dataset
 
         :param Test: Dataset to predict
-        :param ID_Test: The ID column of the Test dataset
+        :param ID: The ID column of the Test dataset
         :param ID_pred: If True, add an ID column to the prediction
         :param value: Value for filling missing values in the Test
         """
 
-        test = self.Transform(Test, ID = ID_Test, value = value)
+        test = self.Transform(Test, ID = ID, value = value)
         #pred = pd.DataFrame()
 
         if self.lab_num:
             pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.gr.classes_)
-            if ID_pred:
-                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+            #if ID_pred:
+            pred.insert(loc=0, column=ID, value=Test[ID])
         else:
             pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
-            if ID_pred:
-                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+            #if ID_pred:
+            pred.insert(loc=0, column=ID, value=Test[ID])
 
         return(pred)
 
 
-    def pred_proba(self, Test, ID_Test = 'ID', ID_pred = True, value = 0, n = 1000, refit = True):
+    def pred_proba(self, Test, ID = 'ID', value = 0, n = 1000, refit = True):
 
         """
         Predict classes probabilities with the refit best estimator found in the fit method
@@ -886,7 +889,7 @@ class BestEstimator(object):
         :param refit: if True, refit at every method launch
         """
 
-        test = self.Transform(Test, ID = ID_Test, value = value)
+        test = self.Transform(Test, ID = ID, value = value)
 
         if self.estim == None:
             self.estim = self.Decision_Function.fit(self.Data[0:n], np.ravel(self.Target[0:n]))
@@ -897,12 +900,12 @@ class BestEstimator(object):
 
         if self.lab_num:
             pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
-            if ID_pred:
-                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+            #if ID_pred:
+            pred.insert(loc=0, column=ID, value=Test[ID])
         else:
             pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.le.inverse_transform(self.estim.classes_))
-            if ID_pred:
-                pred.insert(loc=0, column=ID_Test, value=Test[ID_Test])
+            #if ID_pred:
+            pred.insert(loc=0, column=ID, value=Test[ID])
 
         return(pred)
 
