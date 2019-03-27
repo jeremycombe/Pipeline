@@ -136,7 +136,7 @@ class BestEstimator(object):
                     print('Fail to fill missing values')
 
             else :
-                print('No missing values')
+                print('No missing values \n')
 
         for i in self.Data.columns:  ###########
 
@@ -202,7 +202,7 @@ class BestEstimator(object):
             clfs['Random Forest'] = {'clf': RandomForestRegressor(n_estimators=100, n_jobs=-1),
                                      'name': 'Random Forest'}
             clfs['Decision Tree'] = {'clf': DecisionTreeRegressor(), 'name': 'Decision Tree'}
-            clfs['Extra Tree'] = {'clf': ExtraTreesRegressor(n_jobs=-1), 'name': 'Extra Tree'}
+            clfs['Extra Tree'] = {'clf': ExtraTreesRegressor(n_jobs=-1, n_estimators = 100), 'name': 'Extra Tree'}
             clfs['KNN'] = {'clf': KNeighborsRegressor(n_jobs=-1), 'name': 'KNN'}
             # clfs['NN'] = {'clf': MLPClassifier(), 'name': 'MLPClassifier'
             # clfs['LR'] = {'clf': LogisticClassifier(), 'name': 'LR'}
@@ -231,6 +231,8 @@ class BestEstimator(object):
             else:
                 Best_clf = clfs[min(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
                 print(Best_clf)
+
+            #print('OK')
 
         if self.grid:
             if self.hard_grid == False:
@@ -410,6 +412,8 @@ class BestEstimator(object):
                               'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
             if self.hard_grid:
+                #print('OK2')
+
                 print('\n Searching for the best hyperparametres of {} using hard_grid on {} data among : \n'.format(
                     Best_clf, n_grid))
 
