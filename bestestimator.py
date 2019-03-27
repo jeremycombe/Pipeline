@@ -135,6 +135,9 @@ class BestEstimator(object):
 
                     print('Fail to fill missing values')
 
+            else :
+                print('No missing values')
+
         for i in self.Data.columns:  ###########
 
             if self.Data[i].dtype == object:

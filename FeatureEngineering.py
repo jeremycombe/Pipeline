@@ -40,23 +40,26 @@ class FeatureEngineering(object):
 
     def Missing_Values(self, Data_base = True):
 
-        print("Missing Values :\n")
-
         if Data_base :
             Data = self.Data
         else:
             Data = self.Data_feat
 
-        total = Data.isnull().sum().sort_values(ascending=False)
-        percent = (Data.isnull().sum() / Data.isnull().count()).sort_values(ascending=False) * 100
-        missing_data = pd.concat([total, percent], axis=1, keys=['Total', '%'])
-        print("{} \n".format(missing_data[(percent > 0)]))
+        if  Data.isnull().values.any():
+
+            print("Missing Values :\n")
+
+            total = Data.isnull().sum().sort_values(ascending=False)
+            percent = (Data.isnull().sum() / Data.isnull().count()).sort_values(ascending=False) * 100
+            missing_data = pd.concat([total, percent], axis=1, keys=['Total', '%'])
+            print("{} \n".format(missing_data[(percent > 0)]))
+
+        else :
+            print('No missing values')
 
     def Unique(self, view = True, Data_base = True):
 
         self.Dict = {}
-        #DF_unique = self.Data.copy()
-        #DF_unique.fillna(0, inplace = True)
 
         if Data_base:
 
@@ -69,7 +72,7 @@ class FeatureEngineering(object):
 
         else:
 
-            Empty = True
+
 
             for i in self.Data_feat.columns:
 
@@ -79,7 +82,7 @@ class FeatureEngineering(object):
                     if view:
                         print('\n {} : \n \n {} \n'.format(i, np.array(self.Dict[i])))
 
-            if Empty:
+        if not bool(self.Dict):
 
                 print('All columns are numerics')
 
