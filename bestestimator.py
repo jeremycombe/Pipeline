@@ -451,7 +451,17 @@ class BestEstimator(object):
 
 
     def Feature_Importances_Tree(self, Train, Target, ID = 'ID', value = 0, n = 1000, figsize = (20, 15), nb_features = 15):
+        """
+        Display the importance features using Giny Impurity
 
+        :param Train: Train Dataset
+        :param Target: Target to predict
+        :param ID: name of the ID column
+        :param value: value to fill missing values
+        :param n: sample size for analysis
+        :param figsize: figure size window
+        :param nb_features:  display the nb_features most importance features
+        """
         Data_transform = self.Transform(Train, value, ID)
         Target_transform = self.Transform(Target, value, ID)
 
@@ -476,7 +486,18 @@ class BestEstimator(object):
 
     def Feature_Importances_Test(self, Train, Target, ID='ID', value=0, n=1000, nb_features=15,
                                  test_used = f_classif):
+        """
+        Display the importance features using Giny Impurity
 
+        :param Train: Train Dataset
+        :param Target: Target to predict
+        :param ID: name of the ID column
+        :param value: value to fill missing values
+        :param n: sample size for analysis
+        :param figsize: figure size window
+        :param nb_features:  display the nb_features most importance features
+        :param test_used: test type to use
+        """
         Train_Transform = self.Transform(Train, ID=ID, value=value)
         Target_Transform = self.Transform(Target, ID=ID, value=value)
 
@@ -498,6 +519,15 @@ class BestEstimator(object):
 
 
     def get_highest_corr_target(self, Data, Target, ID='ID', value=0, n = 500, nb_features = 15):
+        """
+        Display the most correlated fearures with the Target
+        :param Data: Dataset
+        :param Target: Target to predict
+        :param ID: name of the ID column
+        :param value: value to fill missing values
+        :param n: sample size for analysi
+        :param nb_features:  display the nb_features most importance features
+        """
 
         Data_tr = self.Transform(Data, ID=ID, value=value)
         Target_tr = self.Transform(Target, ID=ID, value=value)
@@ -525,6 +555,14 @@ class BestEstimator(object):
 
 
     def get_highest_corr(self, Data, ID = 'ID', value = 0, n_pairs = 8, n = 500):
+        """
+        Display the most correlated features pair
+        :param Data : Dataset
+        :param ID: name of the ID column
+        :param value: value to fill missing values
+        :param n: sample size for analysi
+        :param nb_pairs:  display the nb_pairs most correlated features pair
+        """
 
         Data_tr = self.Transform(Data, ID = ID, value = value)
 
@@ -555,6 +593,16 @@ class BestEstimator(object):
 
 
     def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000, n_pairs = 8):
+        """
+        Display the (color) correlated matrix, including the Target
+        :param Train: Train Dataset
+        :param Target: Target Dataset
+        :param ID: ID column name
+        :param value: value for filling missing values
+        :param figsize: figure size
+        :param n: sample size for analysis
+        :param n_pairs: number of features pair to display
+        """
 
         if n_pairs != None :
 

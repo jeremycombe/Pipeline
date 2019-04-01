@@ -40,6 +40,12 @@ class FeatureEngineering(object):
 
     def Missing_Values(self, Data_base = True):
 
+        """
+        Display some statistics on missing values
+
+        :param Data_base: if True, use the dataset from __init__ without any modifications
+        """
+
         if Data_base :
             Data = self.Data
         else:
@@ -57,7 +63,14 @@ class FeatureEngineering(object):
         else :
             print('No missing values')
 
+
     def Unique(self, view = True, Data_base = True):
+        """
+        Display categorical features with their labels
+
+        :param view: if True, show the statistics else, only create the dictionary
+        :param Data_base: if True, use the dataset from __init__ without any modifications
+        """
 
         self.Dict = {}
 
@@ -71,8 +84,6 @@ class FeatureEngineering(object):
                         print('\n {} : \n \n {} \n'.format(i, np.array(self.Dict[i])))
 
         else:
-
-
 
             for i in self.Data_feat.columns:
 
@@ -90,6 +101,12 @@ class FeatureEngineering(object):
 
 
     def To_numeric_freq(self, columns='all'):
+
+        """
+        Transform a categorical feature into a numeric one, substituting labels with their frequences
+
+        :param columns: Features to transform, if 'all', transform all the categorical features
+        """
 
         if self.Dict is None:
             self.Unique(view=False)
@@ -135,6 +152,12 @@ class FeatureEngineering(object):
 
     def To_numeric_quant(self, columns = 'all'):
 
+        """
+        Transform a categorical feature into a numeric one, substituting labels with their cardinal
+
+        :param columns: Features to transform, if 'all', transform all the categorical features
+        """
+
         if self.Dict is None:
             self.Unique(view = False)
 
@@ -165,9 +188,16 @@ class FeatureEngineering(object):
 
     def OneHotEncoder(self, columns):
 
+        """
+        One Hot Encode feature(s)
+
+        :param columns: column to transform
+        """
+
         self.Data_feat = pd.get_dummies(self.Data_feat, columns = columns)
 
         return(self.Data_feat)
+
 
 
     def To_numeric_custom(self, Dict_custom):
@@ -205,6 +235,15 @@ class FeatureEngineering(object):
 
     def Plot(self, feature1, feature2, Data_base = True, figsize = (20, 15), n = 1000):
 
+        """
+        Scatter Plot
+        :param feature1:
+        :param feature2:
+        :param Data_base: if True, use the dataset from __init__ without any modifications
+        :param figsize: figure size
+        :param n: sample size
+        """
+
         if Data_base :
             data = self.Data[0:n]
         else:
@@ -216,14 +255,22 @@ class FeatureEngineering(object):
 
     def feature_dist(self,feature ,Data_base = True, figsize = (20, 15), n = 300, bins = 100):
 
+        """
+        Display histogram and lineplot of a feature
+
+        :param feature:
+        :param Data_base: if True, use the dataset from __init__ without any modifications
+        :param figsize: figure size
+        :param n: sample size to analysis
+        :param bins:
+        """
+
         if Data_base:
             data = self.Data
         else :
             data = self.Data_feat
 
-
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize = figsize)
-        #plt.figure(figsize=figsize)
         sns.distplot(data[feature], bins = bins, ax = ax1)
         sns.lineplot(y = data[feature][0:n], x = range(0,n), data = data[0:n], ax = ax2)
 
