@@ -222,8 +222,11 @@ class BestEstimator(object):
                 clfs[item]['mean'] = Score_mean
                 clfs[item]['std2'] = STD2
 
-                print("\n {}".format(item + ": %0.4f (+/- %0.4f)" % (clfs[item]['score'].mean(),
-                                                                     clfs[item]['score'].std() * 2)))
+                print("\n {}".format(item + ": %0.6f (+/- %.3e)" % (clfs[item]['score'].mean(),
+                                                                     clfs[item]['score'].std() ** 2)))
+
+                #print("\n {}".format(item + ": %0.6f (+/- %0.4f)" % (clfs[item]['score'].mean(),
+                                                                    # clfs[item]['score'].std() ** 2)))
             if self.neg_result:
                 #print(True)
                 Best_clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
