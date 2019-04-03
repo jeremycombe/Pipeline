@@ -165,13 +165,13 @@ class BestEstimator(object):
         if self.type_esti == 'Classifier':
 
             clfs = {}
-            clfs['Bagging'] = {'clf': BaggingClassifier(), 'name': 'Bagging'}
+            clfs['Bagging'] = {'clf': BaggingClassifier(random_state = 0), 'name': 'Bagging'}
             clfs['Gradient Boosting'] = {'clf': GradientBoostingClassifier(random_state = 0), 'name': 'Gradient Boosting'}
-            clfs['XGBoost'] = {'clf': XGBClassifier(), 'name': 'XGBoost'}
-            clfs['Random Forest'] = {'clf': RandomForestClassifier(n_estimators=100, n_jobs=-1),
+            clfs['XGBoost'] = {'clf': XGBClassifier(random_state = 0), 'name': 'XGBoost'}
+            clfs['Random Forest'] = {'clf': RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state = 0),
                                      'name': 'Random Forest'}
             clfs['Decision Tree'] = {'clf': DecisionTreeClassifier(), 'name': 'Decision Tree'}
-            clfs['Extra Tree'] = {'clf': ExtraTreesClassifier(n_jobs=-1, n_estimators = 100), 'name': 'Extra Tree'}
+            clfs['Extra Tree'] = {'clf': ExtraTreesClassifier(n_jobs=-1, n_estimators = 100, random_state = 0), 'name': 'Extra Tree'}
             clfs['KNN'] = {'clf': KNeighborsClassifier(n_jobs=-1), 'name': 'KNN'}
             clfs['SVM'] = {'clf': SVC(gamma='auto'), 'name': 'SVM'}
 
@@ -199,13 +199,13 @@ class BestEstimator(object):
         elif self.type_esti == 'Regressor':
 
             clfs = {}
-            clfs['Bagging'] = {'clf': BaggingRegressor(), 'name': 'Bagging'}
+            clfs['Bagging'] = {'clf': BaggingRegressor(random_state = 0), 'name': 'Bagging'}
             clfs['Gradient Boosting'] = {'clf': GradientBoostingRegressor(), 'name': 'Gradient Boosting'}
-            clfs['XGBoost'] = {'clf': XGBRegressor(), 'name': 'XGBoost'}
-            clfs['Random Forest'] = {'clf': RandomForestRegressor(n_estimators=100, n_jobs=-1),
+            clfs['XGBoost'] = {'clf': XGBRegressor(random_state = 0), 'name': 'XGBoost'}
+            clfs['Random Forest'] = {'clf': RandomForestRegressor(n_estimators=100, n_jobs=-1, random_state = 0),
                                      'name': 'Random Forest'}
             clfs['Decision Tree'] = {'clf': DecisionTreeRegressor(), 'name': 'Decision Tree'}
-            clfs['Extra Tree'] = {'clf': ExtraTreesRegressor(n_jobs=-1, n_estimators = 100), 'name': 'Extra Tree'}
+            clfs['Extra Tree'] = {'clf': ExtraTreesRegressor(n_jobs=-1, n_estimators = 100, random_state = 0), 'name': 'Extra Tree'}
             clfs['KNN'] = {'clf': KNeighborsRegressor(n_jobs=-1), 'name': 'KNN'}
             # clfs['NN'] = {'clf': MLPClassifier(), 'name': 'MLPClassifier'
             # clfs['LR'] = {'clf': LogisticClassifier(), 'name': 'LR'}
