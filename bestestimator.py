@@ -228,8 +228,6 @@ class BestEstimator(object):
                 print("\n {}".format(item + ": %0.6f (+/- %.3e)" % (clfs[item]['score'].mean(),
                                                                      clfs[item]['score'].std() ** 2)))
 
-                #print("\n {}".format(item + ": %0.6f (+/- %0.4f)" % (clfs[item]['score'].mean(),
-                                                                    # clfs[item]['score'].std() ** 2)))
             if self.neg_result:
                 #print(True)
                 Best_clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
@@ -237,8 +235,6 @@ class BestEstimator(object):
             else:
                 Best_clf = clfs[min(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
                 print(Best_clf)
-
-            #print('OK')
 
         if self.grid:
             if self.hard_grid == False:
@@ -361,7 +357,6 @@ class BestEstimator(object):
 
 
                 elif Best_clf == 'Random Forest':
-                    #  print('Best_clf = dt ou rf')
 
                     if self.type_esti == 'Regressor':
 
@@ -418,7 +413,6 @@ class BestEstimator(object):
                               'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
             if self.hard_grid:
-                #print('OK2')
 
                 print('\n Searching for the best hyperparametres of {} using hard_grid on {} data among : \n'.format(
                     Best_clf, n_grid))
@@ -452,7 +446,6 @@ class BestEstimator(object):
 
         else:
             print('\n Best {} : {}'.format(self.type_esti, Best_clf))
-
 
 
 
@@ -551,7 +544,6 @@ class BestEstimator(object):
         df['Target Correlation'] = corr
 
         df.sort_values(by=['Target Correlation'], ascending=False, inplace=True)
-        #df.drop_duplicates(subset='correlation_abs', inplace=True)
         df.drop(0, inplace=True)
         df.reset_index(drop=True, inplace=True)
 
@@ -639,14 +631,9 @@ class BestEstimator(object):
             Target_transform = self.Transform(Target[0:n], value, ID)
             Data_transform = self.Transform(Train[0:n], value, ID)
 
-            #Feature = Data_transform.columns
             target = Target_transform.columns
 
             Data_transform[target] = Target_transform[target]
-
-            #Features = np.r_[Feature, target]
-
-            #Data_transform[target] = Target_transform
 
             corrmat = Data_transform.corr()
             top_corr_features = corrmat.index
@@ -680,7 +667,7 @@ class BestEstimator(object):
         elif value == 'ffill':
             Test.fillna('ffill', inplace=True)
 
-        for i in Test.columns:  ###########
+        for i in Test.columns:
             if Test[i].dtype == float:
                 Test[i] = Test[i].astype('int')
 
@@ -923,15 +910,12 @@ class BestEstimator(object):
         """
 
         test = self.Transform(Test, ID = ID, value = value)
-        #pred = pd.DataFrame()
 
         if self.lab_num:
             pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.gr.classes_)
-            #if ID_pred:
             pred.insert(loc=0, column=ID, value=Test[ID])
         else:
             pred = pd.DataFrame(self.gr.predict_proba(test), columns=self.le.inverse_transform(self.gr.classes_))
-            #if ID_pred:
             pred.insert(loc=0, column=ID, value=Test[ID])
 
         return(pred)
@@ -961,11 +945,9 @@ class BestEstimator(object):
 
         if self.lab_num:
             pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.estim.classes_)
-            #if ID_pred:
             pred.insert(loc=0, column=ID, value=Test[ID])
         else:
             pred = pd.DataFrame(self.estim.predict_proba(test), columns=self.le.inverse_transform(self.estim.classes_))
-            #if ID_pred:
             pred.insert(loc=0, column=ID, value=Test[ID])
 
         return(pred)
