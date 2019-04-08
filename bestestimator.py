@@ -36,25 +36,13 @@ def class_for_name(module_name, class_name):
 class BestEstimator(object):
 
     def __init__(self,
-                 type_esti='Classifier',
-                 cv=3,
-                 grid=True,
-                 hard_grid=False,
-                 cv_grid=3):
+                 type_esti='Classifier'):
 
         """
         :param type_esti: Classifier or Regressor
-        :param cv: fold number for the cross validation first check
-        :param grid: if True, do a GridSearchCV
-        :param hard_grid: if True, do a GridSearchCV with a large set of hyperparamatres
-        :param cv_grid: fold number for the GridSearchCV
         """
 
         self.type_esti = type_esti
-        self.cv = cv
-        self.grid = grid
-        self.hard_grid = hard_grid
-        self.cv_grid = cv_grid
 
         self.Decision_Function = None
         self.gr = None
@@ -80,7 +68,11 @@ class BestEstimator(object):
             n_grid=1000,
             view_nan=True,
             value=0,
-            scoring='roc_auc'):
+            scoring='roc_auc',
+            cv=3,
+            cv_grid = 3,
+            grid = True,
+            hard_grid = False):
 
         """
         Fit all Machine Learning algorithms on a train and target dataset, afterward
@@ -95,6 +87,10 @@ class BestEstimator(object):
         :param view_nan: if True, display some statistics on missing values
         :param value: the value for fill missing values
         :param scoring: loss function to check the estimator performance
+        :param cv: fold number for the cross validation first check
+        :param grid: if True, do a GridSearchCV
+        :param hard_grid: if True, do a GridSearchCV with a large set of hyperparamatres
+        :param cv_grid: fold number for the GridSearchCV
         """
 
         loss = scoring
@@ -103,13 +99,13 @@ class BestEstimator(object):
 
         if self.type_esti == 'Regressor' and loss in self.neg:
             self.neg_result = True
-            #print(self.neg_result)
 
         self.Data.drop([ID], axis=1, inplace=True)
         if target_ID:
             self.Target.drop([ID], axis=1, inplace=True)
 
         if view_nan:
+
 
             if self.Data.isnull().values.any():
 
@@ -179,7 +175,7 @@ class BestEstimator(object):
 
             for item in clfs:
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(self.X_tr[0:n]), np.ravel(self.Y_tr[0:n]),
-                                        cv=self.cv, scoring=scoring)
+                                        cv=cv, scoring=scoring)
 
                 Score_mean = Score.mean()
                 STD2 = Score.std() * 2
@@ -187,9 +183,6 @@ class BestEstimator(object):
                 clfs[item]['score'] = Score
                 clfs[item]['mean'] = Score_mean
                 clfs[item]['std2'] = STD2
-
-                #print("\n {}".format(item + ": %0.4f (+/- %0.4f)" % (clfs[item]['score'].mean(),
-                 #                                                    clfs[item]['score'].std() * 2)))
 
                 print("\n {}".format(item + ": %0.6f (+/- %.3e)" % (clfs[item]['score'].mean(),
                                                                     clfs[item]['score'].std() ** 2)))
@@ -207,14 +200,12 @@ class BestEstimator(object):
             clfs['Decision Tree'] = {'clf': DecisionTreeRegressor(), 'name': 'Decision Tree'}
             clfs['Extra Tree'] = {'clf': ExtraTreesRegressor(n_jobs=-1, n_estimators = 100, random_state = 0), 'name': 'Extra Tree'}
             clfs['KNN'] = {'clf': KNeighborsRegressor(n_jobs=-1), 'name': 'KNN'}
-            # clfs['NN'] = {'clf': MLPClassifier(), 'name': 'MLPClassifier'
-            # clfs['LR'] = {'clf': LogisticClassifier(), 'name': 'LR'}
             clfs['SVM'] = {'clf': SVR(gamma='auto'), 'name': 'SVM'}
 
             for item in clfs:
 
                 Score = cross_val_score(clfs[item]['clf'], np.asarray(self.X_tr[0:n]), np.array(np.ravel(self.Y_tr[0:n])),
-                                        cv=self.cv, scoring=scoring)
+                                        cv=cv, scoring=scoring)
                 Score_mean = Score.mean()
                 STD2 = Score.std() * 2
 
@@ -229,15 +220,13 @@ class BestEstimator(object):
                                                                      clfs[item]['score'].std() ** 2)))
 
             if self.neg_result:
-                #print(True)
                 Best_clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
-                #print(Best_clf)
             else:
                 Best_clf = clfs[min(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['name']
                 print(Best_clf)
 
-        if self.grid:
-            if self.hard_grid == False:
+        if grid:
+            if hard_grid == False:
 
                 if Best_clf == 'Extra Tree':
 
@@ -412,7 +401,7 @@ class BestEstimator(object):
                               'tol': [.01, .001, .1, .0001, 1],
                               'kernel': ['rbf', 'linear', 'poly', 'sigmoid', 'precomputed']}
 
-            if self.hard_grid:
+            if hard_grid:
 
                 print('\n Searching for the best hyperparametres of {} using hard_grid on {} data among : \n'.format(
                     Best_clf, n_grid))
@@ -422,8 +411,7 @@ class BestEstimator(object):
             print('{} \n'.format(params))
 
             clf = clfs[max(clfs.keys(), key=(lambda k: clfs[k]['mean']))]['clf']
-            #print(clf)                                                                                                                    ############
-            self.gr = GridSearchCV(clf, param_grid=params, cv=self.cv_grid, scoring=scoring,
+            self.gr = GridSearchCV(clf, param_grid=params, cv=cv_grid, scoring=scoring,
                                    verbose=1, refit=True, iid=True, n_jobs=-1)
 
             self.gr.fit(self.X_tr[0:n_grid], np.ravel(self.Y_tr[0:n_grid]))
@@ -550,8 +538,6 @@ class BestEstimator(object):
         return(df[0:nb_features])
 
 
-
-
     def get_highest_corr(self, Data, ID = 'ID', value = 0, n_pairs = 8, n = 500):
         """
         Display the most correlated features pair
@@ -587,7 +573,6 @@ class BestEstimator(object):
 
 
         return (df[0:n_pairs])
-
 
 
     def corr_mat(self, Train, Target, ID = 'ID', value = 0, figsize = (20, 15), n = 1000, n_pairs = 8):
@@ -676,8 +661,6 @@ class BestEstimator(object):
                 encoder.fit(list(Test[i]))
                 Test[i] = encoder.transform(list(Test[i]))
         return (Test)
-
-
 
 
     def custom_grid(self, Train, Target, ID='ID', target_ID=True,
@@ -774,8 +757,6 @@ class BestEstimator(object):
             if self.gr.best_score_ > DF.best_score_:
                 self.Decision_Function = DF.best_estimator_
 
-        #print(self.Decision_Function)
-
 
 
     def pred_grid(self, Test, ID='ID', value=0):
@@ -858,12 +839,9 @@ class BestEstimator(object):
         :param metric: loss score
         """
 
-        #X_tr, X_te, Y_tr, Y_te = train_test_split(self.Data, self.Target, random_state=0, test_size=1/3)
         sc_reg = 0
         sc_cla = 0
         size = 0
-
-
 
         if self.type_esti == 'Regressor':
             estim = self.Decision_Function
@@ -896,7 +874,6 @@ class BestEstimator(object):
 
         print('\n In the end, the best data size is {} \n'.format(size))
         print(' With this {} : {}'.format(metric, s))
-        #print(self.Decision_Function)
 
 
     def pred_grid_proba(self, Test, ID = 'ID', value = 0):
